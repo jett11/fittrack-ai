@@ -5,6 +5,7 @@ import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { useAuth } from '../hooks/useAuth'
 import { requestUpgrade, getLatestUpgradeRequest } from '../services/premiumService'
+import { startPremiumCheckout } from '../services/razorpayService'
 import { isDemoMode } from '../services/supabaseClient'
 
 const UPI_ID = 'jeevaninthapa@oksbi'
@@ -19,6 +20,9 @@ export default function Upgrade() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [paying, setPaying] = useState(false)
+  const [payError, setPayError] = useState('')
+  const [showUpi, setShowUpi] = useState(false)
 
   useEffect(() => {
     if (!user || isDemoMode) {
@@ -36,6 +40,19 @@ export default function Upgrade() {
     const { data, error } = await requestUpgrade(user.id)
     setSubmitting(false)
     if (!error) setRequest(data)
+  }
+
+  const handlePay = async () => {
+    setPaying(true)
+    setPayError('')
+    try {
+      await startPremiumCheckout({ user })
+      window.location.reload()
+    } catch (e) {
+      if (e.message !== 'cancelled') setPayError(e.message)
+    } finally {
+      setPaying(false)
+    }
   }
 
   const copyUpi = () => {
@@ -95,21 +112,41 @@ export default function Upgrade() {
           <p className="text-sm text-danger">Your last request couldn&rsquo;t be confirmed. If you did pay, please reach out directly.</p>
         ) : (
           <>
-            <p className="text-sm font-semibold text-text">Pay via UPI</p>
-            <div className="mt-2 flex items-center justify-between rounded-xl border border-border bg-surface-2 px-3.5 py-2.5">
-              <span className="font-mono text-sm text-text">{UPI_ID}</span>
-              <Button size="sm" variant="ghost" onClick={copyUpi}>
-                {copied ? 'Copied' : 'Copy'}
-              </Button>
-            </div>
-            <p className="mt-2 text-xs text-text-secondary">
-              Open GPay/PhonePe/Paytm, send {PRICE.split('/')[0]} to the ID above, then tap the button below — this logs your
-              request so it can be confirmed and activated.
+            <p className="text-sm font-semibold text-text">Pay securely, unlock instantly</p>
+            <p className="mt-1 text-xs text-text-secondary">
+              UPI, cards, or netbanking via Razorpay — Premium activates automatically the moment payment succeeds.
             </p>
-            <Button onClick={handleRequest} disabled={submitting || isDemoMode} className="mt-4 w-full">
-              {submitting ? 'Submitting…' : "I've paid — notify me when it's active"}
+            <Button onClick={handlePay} disabled={paying || isDemoMode} className="mt-4 w-full">
+              {paying ? 'Opening checkout…' : `Pay ${PRICE.split('/')[0]} and unlock Premium`}
             </Button>
+            {payError && <p className="mt-2 text-sm font-medium text-danger">{payError}</p>}
             {isDemoMode && <p className="mt-2 text-xs text-text-secondary">Not available in demo mode.</p>}
+
+            <button
+              type="button"
+              onClick={() => setShowUpi((s) => !s)}
+              className="mt-4 text-xs font-medium text-text-secondary underline"
+            >
+              {showUpi ? 'Hide' : 'Prefer to pay manually via UPI instead?'}
+            </button>
+
+            {showUpi && (
+              <div className="mt-3 border-t border-border pt-4">
+                <div className="flex items-center justify-between rounded-xl border border-border bg-surface-2 px-3.5 py-2.5">
+                  <span className="font-mono text-sm text-text">{UPI_ID}</span>
+                  <Button size="sm" variant="ghost" onClick={copyUpi}>
+                    {copied ? 'Copied' : 'Copy'}
+                  </Button>
+                </div>
+                <p className="mt-2 text-xs text-text-secondary">
+                  Open GPay/PhonePe/Paytm, send {PRICE.split('/')[0]} to the ID above, then tap below — this needs manual
+                  confirmation, so it&rsquo;s slower than the button above.
+                </p>
+                <Button variant="secondary" size="sm" onClick={handleRequest} disabled={submitting} className="mt-3 w-full">
+                  {submitting ? 'Submitting…' : "I've paid via UPI — notify me when it's active"}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </Card>

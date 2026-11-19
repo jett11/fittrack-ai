@@ -11,6 +11,7 @@ import TodayWorkoutCard from '../components/dashboard/TodayWorkoutCard'
 import TodayNutritionCard from '../components/dashboard/TodayNutritionCard'
 import WeeklyConsistencyChart from '../components/dashboard/WeeklyConsistencyChart'
 import WeightProgressChart from '../components/dashboard/WeightProgressChart'
+import AIInsightsCard from '../components/dashboard/AIInsightsCard'
 
 const firstName = (name) => (name ? name.split(' ')[0] : null)
 
@@ -82,6 +83,13 @@ export default function Dashboard() {
             <TodayWorkoutCard session={todayWorkout} />
             <TodayNutritionCard meals={meals} calorieTarget={calorieTarget} proteinTarget={proteinTarget} />
             <WeeklyConsistencyChart days={weeklyConsistency} />
+            <AIInsightsCard
+              weightHistory={weightHistory}
+              weeklyConsistency={weeklyConsistency}
+              todayMeals={meals}
+              todayWorkout={todayWorkout}
+              fitnessGoal={profile?.fitness_goal}
+            />
           </div>
 
           <div className="mt-4">

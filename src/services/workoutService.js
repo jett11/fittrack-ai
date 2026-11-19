@@ -37,7 +37,7 @@ export async function getWorkoutWithExercises(workoutId) {
   return data
 }
 
-export async function createRoutine(userId, { name, goal, level, location, exerciseIds }) {
+export async function createRoutine(userId, { name, goal, level, location, exerciseIds, items }) {
   if (isDemoMode) return { error: DEMO_ERROR }
   const { data: workout, error } = await supabase
     .from('workouts')
@@ -46,10 +46,14 @@ export async function createRoutine(userId, { name, goal, level, location, exerc
     .single()
   if (error) return { error }
 
-  const rows = exerciseIds.map((exerciseId, i) => ({
+  const list = items ?? exerciseIds.map((id) => ({ id }))
+  const rows = list.map((item, i) => ({
     workout_id: workout.id,
-    exercise_id: exerciseId,
+    exercise_id: item.id,
     position: i,
+    target_sets: item.sets ?? null,
+    target_reps: item.reps ?? null,
+    rest_seconds: item.rest_seconds ?? null,
   }))
   if (rows.length) {
     const { error: linkError } = await supabase.from('workout_exercises').insert(rows)
