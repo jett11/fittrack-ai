@@ -26,6 +26,7 @@ export default function Onboarding() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [data, setData] = useState({
     full_name: '',
     age: '',
@@ -62,6 +63,7 @@ export default function Onboarding() {
 
   const finish = async () => {
     setSaving(true)
+    setError('')
     const payload = {
       full_name: data.full_name.trim(),
       age: data.age ? Number(data.age) : null,
@@ -78,9 +80,18 @@ export default function Onboarding() {
       daily_food_budget: data.daily_food_budget ? Number(data.daily_food_budget) : null,
       onboarding_completed: true,
     }
-    const { error } = await saveProfile(payload)
-    setSaving(false)
-    if (!error) navigate('/dashboard')
+    try {
+      const { error: saveError } = await saveProfile(payload)
+      if (saveError) {
+        setError(saveError.message || 'Could not save your profile. Try again.')
+        return
+      }
+      navigate('/dashboard')
+    } catch (e) {
+      setError(e.message || 'Something went wrong saving your profile. Try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const next = () => (step === STEPS.length - 1 ? finish() : setStep((s) => s + 1))
@@ -217,6 +228,8 @@ export default function Onboarding() {
           </div>
         </div>
       )}
+
+      {error && <p className="mt-4 text-sm font-medium text-danger">{error}</p>}
 
       <div className="mt-7 flex items-center justify-between">
         <Button variant="ghost" onClick={back} disabled={step === 0 || saving}>
