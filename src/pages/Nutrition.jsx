@@ -5,6 +5,7 @@ import Tabs from '../components/ui/Tabs'
 import AddFoodForm from '../components/nutrition/AddFoodForm'
 import MealSection from '../components/nutrition/MealSection'
 import BudgetPlanner from '../components/nutrition/BudgetPlanner'
+import PremiumGate from '../components/ui/PremiumGate'
 import { useAuth } from '../hooks/useAuth'
 import { getTodayMeals, deleteMealLog } from '../services/nutritionService'
 import { calculateCalorieTarget, calculateProteinTarget } from '../utils/nutritionCalculations'
@@ -107,7 +108,14 @@ export default function Nutrition() {
         </div>
       ) : (
         <div className="mt-5">
-          <BudgetPlanner />
+          {profile?.is_premium ? (
+            <BudgetPlanner />
+          ) : (
+            <PremiumGate
+              title="Plan meals around your budget"
+              description="The budget-based meal planner is a Premium feature — tell us your daily budget and get real food suggestions."
+            />
+          )}
         </div>
       )}
     </Container>

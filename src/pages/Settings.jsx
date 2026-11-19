@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Moon, Sun, Download, Trash2, LogOut } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Moon, Sun, Download, Trash2, LogOut, Crown } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
@@ -66,6 +66,23 @@ export default function Settings() {
       <h2 className="text-2xl font-extrabold text-text">Settings</h2>
 
       <Card className="mt-6 flex items-center justify-between p-5">
+        <div className="flex items-center gap-3">
+          <Crown size={18} className="text-accent" />
+          <div>
+            <p className="text-sm font-semibold text-text">{profile?.is_premium ? 'Premium' : 'Free plan'}</p>
+            <p className="text-xs text-text-secondary">
+              {profile?.is_premium ? 'All features unlocked' : 'Routines, budget plans & photos are Premium'}
+            </p>
+          </div>
+        </div>
+        {!profile?.is_premium && (
+          <Button as={Link} to="/upgrade" size="sm">
+            Upgrade
+          </Button>
+        )}
+      </Card>
+
+      <Card className="mt-4 flex items-center justify-between p-5">
         <div>
           <p className="text-sm font-semibold text-text">Appearance</p>
           <p className="text-xs text-text-secondary">Light or dark theme</p>

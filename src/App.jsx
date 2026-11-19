@@ -20,6 +20,7 @@ const WorkoutSession = lazy(() => import('./pages/WorkoutSession'))
 const Nutrition = lazy(() => import('./pages/Nutrition'))
 const Transformation = lazy(() => import('./pages/Transformation'))
 const Challenges = lazy(() => import('./pages/Challenges'))
+const Upgrade = lazy(() => import('./pages/Upgrade'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Settings = lazy(() => import('./pages/Settings'))
 const NotFound = lazy(() => import('./pages/NotFound'))
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/nutrition" element={<Nutrition />} />
             <Route path="/transformation" element={<Transformation />} />
             <Route path="/challenges" element={<Challenges />} />
+            <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

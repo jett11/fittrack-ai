@@ -5,9 +5,11 @@ import Container from '../components/ui/Container'
 import Button from '../components/ui/Button'
 import Tabs from '../components/ui/Tabs'
 import Card from '../components/ui/Card'
+import PremiumGate from '../components/ui/PremiumGate'
 import WorkoutCard from '../components/workouts/WorkoutCard'
 import ExerciseLibrary from '../components/workouts/ExerciseLibrary'
 import { useWorkouts } from '../hooks/useWorkouts'
+import { useAuth } from '../hooks/useAuth'
 import { isDemoMode } from '../services/supabaseClient'
 
 const TABS = [
@@ -26,14 +28,18 @@ function historyIcon(status) {
 export default function Workouts() {
   const [tab, setTab] = useState('templates')
   const { templates, routines, history, loading } = useWorkouts()
+  const { profile } = useAuth()
+  const isPremium = !!profile?.is_premium
 
   return (
     <Container className="max-w-5xl py-6 sm:py-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-extrabold text-text">Workouts</h2>
-        <Button as={Link} to="/workouts/new" size="sm">
-          <Plus size={15} /> New routine
-        </Button>
+        {isPremium && (
+          <Button as={Link} to="/workouts/new" size="sm">
+            <Plus size={15} /> New routine
+          </Button>
+        )}
       </div>
 
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
@@ -59,7 +65,12 @@ export default function Workouts() {
           ))}
 
         {tab === 'routines' &&
-          (loading ? (
+          (!isPremium ? (
+            <PremiumGate
+              title="Build your own routines"
+              description="Custom routine building is a Premium feature — pick your own exercises, sets and reps."
+            />
+          ) : loading ? (
             <p className="text-sm text-text-secondary">Loading…</p>
           ) : routines.length === 0 ? (
             <Card className="p-8 text-center">
@@ -79,7 +90,12 @@ export default function Workouts() {
         {tab === 'library' && <ExerciseLibrary />}
 
         {tab === 'history' &&
-          (loading ? (
+          (!isPremium ? (
+            <PremiumGate
+              title="See your full workout history"
+              description="Track every past session, completed or not — a Premium feature."
+            />
+          ) : loading ? (
             <p className="text-sm text-text-secondary">Loading…</p>
           ) : history.length === 0 ? (
             <p className="text-sm text-text-secondary">No workout sessions logged yet.</p>

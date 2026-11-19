@@ -5,6 +5,7 @@ import Card from '../components/ui/Card'
 import MeasurementForm from '../components/transformation/MeasurementForm'
 import MetricChart from '../components/transformation/MetricChart'
 import PhotoGrid from '../components/transformation/PhotoGrid'
+import PremiumGate from '../components/ui/PremiumGate'
 import { useAuth } from '../hooks/useAuth'
 import { isDemoMode } from '../services/supabaseClient'
 import {
@@ -25,7 +26,7 @@ const METRICS = [
 ]
 
 export default function Transformation() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [history, setHistory] = useState([])
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -100,7 +101,14 @@ export default function Transformation() {
           </div>
         )}
 
-        <PhotoGrid photos={photos} onUpload={handleUpload} onDelete={handleDeletePhoto} uploading={uploading} />
+        {profile?.is_premium ? (
+          <PhotoGrid photos={photos} onUpload={handleUpload} onDelete={handleDeletePhoto} uploading={uploading} />
+        ) : (
+          <PremiumGate
+            title="Keep a private photo timeline"
+            description="Progress photos are a Premium feature — private to you, never shared."
+          />
+        )}
       </div>
     </Container>
   )
