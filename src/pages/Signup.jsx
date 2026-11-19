@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
+import GoogleButton from '../components/auth/GoogleButton'
 import { useAuth } from '../hooks/useAuth'
 
 export default function Signup() {
@@ -47,7 +48,17 @@ export default function Signup() {
       <h1 className="text-xl font-bold text-text">Create your account</h1>
       <p className="mt-1 text-sm text-text-secondary">Free to start. No credit card needed.</p>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
+      <div className="mt-6">
+        <GoogleButton />
+      </div>
+
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-text-secondary">or</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
         <Input
           id="email"
           label="Email"

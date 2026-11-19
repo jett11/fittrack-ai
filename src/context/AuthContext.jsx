@@ -91,6 +91,17 @@ export function AuthProvider({ children }) {
     return { data, error }
   }
 
+  const signInWithGoogle = async () => {
+    if (isDemoMode) {
+      return { error: { message: 'Google sign-in isn’t available in demo mode.' } }
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    })
+    return { error }
+  }
+
   const signOut = async () => {
     if (isDemoMode) {
       setUser(null)
@@ -139,6 +150,7 @@ export function AuthProvider({ children }) {
         isDemoMode,
         signUp,
         signIn,
+        signInWithGoogle,
         signOut,
         resetPassword,
         saveProfile,
