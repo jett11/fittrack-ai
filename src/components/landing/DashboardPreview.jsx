@@ -7,7 +7,6 @@ export default function DashboardPreview() {
     <Card className="relative mx-auto w-full max-w-xl overflow-hidden p-5 sm:p-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <p className="text-sm text-text-secondary">Good morning</p>
           <p className="font-semibold text-text">Today&rsquo;s overview</p>
         </div>
         <Badge tone="sample">Sample preview</Badge>
