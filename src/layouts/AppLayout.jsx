@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import DemoModeBanner from '../components/ui/DemoModeBanner'
 import Sidebar from '../components/app/Sidebar'
@@ -5,11 +6,16 @@ import BottomNav from '../components/app/BottomNav'
 import AppHeader from '../components/app/AppHeader'
 import { navItems } from '../data/navItems'
 import { useAuth } from '../hooks/useAuth'
+import { prefetchMainRoutes } from '../utils/prefetchRoutes'
 
 export default function AppLayout() {
   const location = useLocation()
   const { profile } = useAuth()
   const current = navItems.find((n) => location.pathname.startsWith(n.to))
+
+  useEffect(() => {
+    prefetchMainRoutes()
+  }, [])
 
   if (profile && !profile.onboarding_completed) {
     return <Navigate to="/onboarding" replace />
