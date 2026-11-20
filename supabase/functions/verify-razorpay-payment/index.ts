@@ -3,6 +3,7 @@
 // (which is allowed past the protect_premium_flag trigger; see
 // supabase/migrations/0011_premium_tier.sql).
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
 async function hmacSha256Hex(secret, message) {
   const key = await crypto.subtle.importKey(
@@ -19,8 +20,11 @@ async function hmacSha256Hex(secret, message) {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders })
   }
 
   const authHeader = req.headers.get('Authorization') ?? ''
@@ -34,19 +38,19 @@ Deno.serve(async (req) => {
   } = await anonClient.auth.getUser()
 
   if (userError || !user) {
-    return new Response(JSON.stringify({ error: 'Not signed in.' }), { status: 401 })
+    return new Response(JSON.stringify({ error: 'Not signed in.' }), { status: 401, headers: corsHeaders })
   }
 
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json()
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-    return new Response(JSON.stringify({ error: 'Missing payment details.' }), { status: 400 })
+    return new Response(JSON.stringify({ error: 'Missing payment details.' }), { status: 400, headers: corsHeaders })
   }
 
   const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')
   const expectedSignature = await hmacSha256Hex(keySecret, `${razorpay_order_id}|${razorpay_payment_id}`)
 
   if (expectedSignature !== razorpay_signature) {
-    return new Response(JSON.stringify({ error: 'Payment could not be verified.' }), { status: 400 })
+    return new Response(JSON.stringify({ error: 'Payment could not be verified.' }), { status: 400, headers: corsHeaders })
   }
 
   const adminClient = createClient(Deno.env.get('SUPABASE_URL'), Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))
@@ -58,5 +62,5 @@ Deno.serve(async (req) => {
     .eq('user_id', user.id)
     .eq('status', 'pending')
 
-  return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } })
+  return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 })

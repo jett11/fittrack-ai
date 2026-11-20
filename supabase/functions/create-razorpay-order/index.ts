@@ -2,12 +2,16 @@
 // The Razorpay key secret only ever lives here (server-side), never in
 // the browser bundle.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
 const PREMIUM_PRICE_PAISE = 14900 // ₹149.00, in the smallest currency unit Razorpay expects
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
+  }
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 })
+    return new Response('Method not allowed', { status: 405, headers: corsHeaders })
   }
 
   const authHeader = req.headers.get('Authorization') ?? ''
@@ -21,7 +25,7 @@ Deno.serve(async (req) => {
   } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    return new Response(JSON.stringify({ error: 'Not signed in.' }), { status: 401 })
+    return new Response(JSON.stringify({ error: 'Not signed in.' }), { status: 401, headers: corsHeaders })
   }
 
   const keyId = Deno.env.get('RAZORPAY_KEY_ID')
@@ -45,8 +49,10 @@ Deno.serve(async (req) => {
   const order = await orderRes.json()
 
   if (!orderRes.ok) {
+    console.error('Razorpay order creation failed:', orderRes.status, JSON.stringify(order))
     return new Response(JSON.stringify({ error: order.error?.description ?? 'Could not create order.' }), {
       status: 502,
+      headers: corsHeaders,
     })
   }
 
@@ -57,6 +63,6 @@ Deno.serve(async (req) => {
       currency: order.currency,
       keyId,
     }),
-    { headers: { 'Content-Type': 'application/json' } }
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   )
 })
