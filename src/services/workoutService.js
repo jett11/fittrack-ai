@@ -172,6 +172,7 @@ const EMPTY_ANALYTICS = {
   totalMinutes: 0,
   muscleGroupDistribution: [],
   personalRecords: [],
+  volumeTrend: null,
 }
 
 /**
@@ -194,7 +195,7 @@ export async function getWorkoutAnalytics(userId) {
     // rows to sessions owned by the requesting user — no manual filter needed.
     supabase
       .from('workout_logs')
-      .select('exercise_id, weight_kg, reps_completed, completed, exercises(name, muscle_group)')
+      .select('session_id, exercise_id, weight_kg, reps_completed, completed, exercises(name, muscle_group)')
       .eq('completed', true),
   ])
 
@@ -231,5 +232,36 @@ export async function getWorkoutAnalytics(userId) {
     .sort((a, b) => b.weight - a.weight)
     .slice(0, 5)
 
-  return { totalWorkouts, weeklyFrequency, totalMinutes: Math.round(totalMinutes), muscleGroupDistribution, personalRecords }
+  // Volume trend: total weight x reps per completed session, oldest to newest,
+  // comparing the average of the earlier half against the more recent half.
+  const volumeBySession = {}
+  ;(logs ?? []).forEach((log) => {
+    const weight = Number(log.weight_kg)
+    const reps = Number(log.reps_completed)
+    if (weight > 0 && reps > 0) {
+      volumeBySession[log.session_id] = (volumeBySession[log.session_id] || 0) + weight * reps
+    }
+  })
+  const orderedVolumes = [...completed]
+    .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
+    .map((s) => volumeBySession[s.id])
+    .filter((v) => v != null)
+
+  let volumeTrend = null
+  if (orderedVolumes.length >= 4) {
+    const mid = Math.floor(orderedVolumes.length / 2)
+    const earlierAvg = orderedVolumes.slice(0, mid).reduce((a, b) => a + b, 0) / mid
+    const recentAvg = orderedVolumes.slice(mid).reduce((a, b) => a + b, 0) / (orderedVolumes.length - mid)
+    const changePct = earlierAvg ? Math.round(((recentAvg - earlierAvg) / earlierAvg) * 100) : 0
+    volumeTrend = { direction: changePct > 5 ? 'up' : changePct < -5 ? 'down' : 'flat', changePct }
+  }
+
+  return {
+    totalWorkouts,
+    weeklyFrequency,
+    totalMinutes: Math.round(totalMinutes),
+    muscleGroupDistribution,
+    personalRecords,
+    volumeTrend,
+  }
 }

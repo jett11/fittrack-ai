@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CheckCircle2, Circle, Flame, Droplets, Footprints, ListChecks } from 'lucide-react'
 import Card from '../ui/Card'
 import { calculateStreak, completionsThisWeek, earnedBadges } from '../../services/challengeService'
@@ -9,11 +10,20 @@ function todayStr() {
 }
 
 export default function ChallengeCard({ challenge, completions, onToggle }) {
+  const [justCompleted, setJustCompleted] = useState(false)
   const Icon = ICONS[challenge.category] ?? ListChecks
   const isDoneToday = completions.some((c) => c.challenge_id === challenge.id && c.completed_date === todayStr())
   const streak = calculateStreak(completions, challenge.id)
   const weekCount = completionsThisWeek(completions, challenge.id)
   const badges = earnedBadges(streak)
+
+  const handleToggle = () => {
+    if (!isDoneToday) {
+      setJustCompleted(true)
+      setTimeout(() => setJustCompleted(false), 350)
+    }
+    onToggle(challenge.id)
+  }
 
   return (
     <Card className="flex items-center gap-4 p-4">
@@ -38,9 +48,9 @@ export default function ChallengeCard({ challenge, completions, onToggle }) {
       </div>
       <button
         type="button"
-        onClick={() => onToggle(challenge.id)}
+        onClick={handleToggle}
         aria-label={isDoneToday ? 'Mark not done' : 'Mark done today'}
-        className="shrink-0"
+        className={`shrink-0 ${justCompleted ? 'animate-pop-complete' : ''}`}
       >
         {isDoneToday ? <CheckCircle2 size={26} className="text-primary" /> : <Circle size={26} className="text-text-secondary" />}
       </button>
