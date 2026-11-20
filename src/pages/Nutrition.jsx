@@ -5,9 +5,14 @@ import Tabs from '../components/ui/Tabs'
 import AddFoodForm from '../components/nutrition/AddFoodForm'
 import MealSection from '../components/nutrition/MealSection'
 import BudgetPlanner from '../components/nutrition/BudgetPlanner'
+import MacroDonut from '../components/nutrition/MacroDonut'
+import MealDistribution from '../components/nutrition/MealDistribution'
+import CalorieRing from '../components/dashboard/CalorieRing'
+import WeeklyCalorieChart from '../components/dashboard/WeeklyCalorieChart'
 import PremiumGate from '../components/ui/PremiumGate'
 import { useAuth } from '../hooks/useAuth'
 import { getTodayMeals, deleteMealLog } from '../services/nutritionService'
+import { getWeeklyCalories } from '../services/dashboardService'
 import { calculateCalorieTarget, calculateProteinTarget } from '../utils/nutritionCalculations'
 import { isDemoMode } from '../services/supabaseClient'
 
@@ -38,17 +43,20 @@ export default function Nutrition() {
   const { user, profile } = useAuth()
   const [tab, setTab] = useState('log')
   const [meals, setMeals] = useState([])
+  const [weeklyCalories, setWeeklyCalories] = useState([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(() => {
     if (isDemoMode || !user) {
       setMeals([])
+      setWeeklyCalories([])
       setLoading(false)
       return
     }
     setLoading(true)
-    getTodayMeals(user.id).then((data) => {
+    Promise.all([getTodayMeals(user.id), getWeeklyCalories(user.id)]).then(([data, weekly]) => {
       setMeals(data)
+      setWeeklyCalories(weekly)
       setLoading(false)
     })
   }, [user])
@@ -89,12 +97,18 @@ export default function Nutrition() {
             <p className="text-sm text-text-secondary">Demo mode doesn&rsquo;t simulate the food log — connect a real account to try this.</p>
           )}
 
-          <Card className="flex flex-col gap-3 p-5">
-            <SummaryBar label="Calories" value={totals.calories} target={calorieTarget} unit="" />
+          <CalorieRing consumed={totals.calories} target={calorieTarget} />
+
+          <Card className="p-5">
             <SummaryBar label="Protein" value={totals.protein_g} target={proteinTarget} unit="g" />
-            <SummaryBar label="Carbs" value={totals.carbs_g} unit="g" />
-            <SummaryBar label="Fat" value={totals.fat_g} unit="g" />
           </Card>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <MacroDonut protein_g={totals.protein_g} carbs_g={totals.carbs_g} fat_g={totals.fat_g} />
+            <MealDistribution meals={meals} />
+          </div>
+
+          <WeeklyCalorieChart days={weeklyCalories} target={calorieTarget} />
 
           <AddFoodForm onAdded={load} />
 
