@@ -80,12 +80,17 @@ export async function deleteProgressPhoto(id, storagePath) {
   return { error }
 }
 
-export function monthlySummary(history) {
+/** Weight change over the trailing `days` window, from real logged entries only. */
+export function periodSummary(history, days) {
   if (history.length === 0) return null
-  const oneMonthAgo = new Date()
-  oneMonthAgo.setDate(oneMonthAgo.getDate() - 30)
-  const recent = history.filter((h) => new Date(h.measured_at) >= oneMonthAgo && h.weight_kg != null)
+  const since = new Date()
+  since.setDate(since.getDate() - days)
+  const recent = history.filter((h) => new Date(h.measured_at) >= since && h.weight_kg != null)
   if (recent.length < 2) return null
   const change = recent.at(-1).weight_kg - recent[0].weight_kg
   return { change: Math.round(change * 10) / 10, entries: recent.length }
+}
+
+export function monthlySummary(history) {
+  return periodSummary(history, 30)
 }

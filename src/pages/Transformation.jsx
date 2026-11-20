@@ -5,6 +5,8 @@ import Card from '../components/ui/Card'
 import MeasurementForm from '../components/transformation/MeasurementForm'
 import MetricChart from '../components/transformation/MetricChart'
 import PhotoGrid from '../components/transformation/PhotoGrid'
+import GoalProgress from '../components/transformation/GoalProgress'
+import Milestones from '../components/transformation/Milestones'
 import PremiumGate from '../components/ui/PremiumGate'
 import { useAuth } from '../hooks/useAuth'
 import { isDemoMode } from '../services/supabaseClient'
@@ -14,7 +16,7 @@ import {
   uploadProgressPhoto,
   getProgressPhotos,
   deleteProgressPhoto,
-  monthlySummary,
+  periodSummary,
 } from '../services/transformationService'
 
 const METRICS = [
@@ -68,7 +70,9 @@ export default function Transformation() {
     await deleteProgressPhoto(photo.id, photo.storage_path)
   }
 
-  const summary = monthlySummary(history)
+  const weekSummary = periodSummary(history, 7)
+  const monthSummary = periodSummary(history, 30)
+  const latestWeight = [...history].reverse().find((h) => h.weight_kg != null)?.weight_kg ?? profile?.current_weight_kg
 
   return (
     <Container className="max-w-2xl py-6 sm:py-8">
@@ -80,17 +84,35 @@ export default function Transformation() {
         </p>
       )}
 
-      {summary && (
-        <Card className="mb-4 flex items-center gap-3 p-4">
-          <TrendingUp size={18} className="text-primary" />
-          <p className="text-sm text-text">
-            <span className="font-semibold">{summary.change > 0 ? '+' : ''}{summary.change}kg</span> over the last 30 days,
-            from {summary.entries} log{summary.entries === 1 ? '' : 's'}.
-          </p>
+      {(weekSummary || monthSummary) && (
+        <Card className="mb-4 flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:gap-6">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={18} className="text-primary" />
+            <p className="text-sm text-text">
+              {weekSummary && (
+                <>
+                  <span className="font-semibold">{weekSummary.change > 0 ? '+' : ''}{weekSummary.change}kg</span> this week
+                </>
+              )}
+              {weekSummary && monthSummary && ' · '}
+              {monthSummary && (
+                <>
+                  <span className="font-semibold">{monthSummary.change > 0 ? '+' : ''}{monthSummary.change}kg</span> over 30
+                  days
+                </>
+              )}
+            </p>
+          </div>
         </Card>
       )}
 
       <div className="flex flex-col gap-4">
+        <GoalProgress
+          startingWeight={profile?.current_weight_kg}
+          currentWeight={latestWeight}
+          targetWeight={profile?.target_weight_kg}
+        />
+
         <MeasurementForm onSave={handleSaveMeasurement} />
 
         {!loading && (
@@ -100,6 +122,8 @@ export default function Transformation() {
             ))}
           </div>
         )}
+
+        {!loading && <Milestones history={history} />}
 
         {profile?.is_premium ? (
           <PhotoGrid photos={photos} onUpload={handleUpload} onDelete={handleDeletePhoto} uploading={uploading} />
