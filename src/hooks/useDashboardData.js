@@ -7,6 +7,7 @@ import {
   getTodayMealTotals,
   getTodayWorkoutSession,
   getWeeklyConsistency,
+  getWeeklyCalories,
   getWeightHistory,
   buildEmptyWeek,
 } from '../services/dashboardService'
@@ -16,6 +17,7 @@ const EMPTY = {
   meals: { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, count: 0 },
   todayWorkout: null,
   weeklyConsistency: buildEmptyWeek(),
+  weeklyCalories: buildEmptyWeek().map((d) => ({ ...d, calories: 0 })),
   weightHistory: [],
 }
 
@@ -34,15 +36,16 @@ export function useDashboardData() {
       return
     }
 
-    const [water, meals, todayWorkout, weeklyConsistency, weightHistory] = await Promise.all([
+    const [water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory] = await Promise.all([
       getTodayWater(user.id),
       getTodayMealTotals(user.id),
       getTodayWorkoutSession(user.id),
       getWeeklyConsistency(user.id),
+      getWeeklyCalories(user.id),
       getWeightHistory(user.id),
     ])
 
-    setData({ water, meals, todayWorkout, weeklyConsistency, weightHistory })
+    setData({ water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory })
     setLoading(false)
   }, [user])
 

@@ -96,6 +96,26 @@ export async function getWeeklyConsistency(userId) {
   return buildEmptyWeek().map((d) => ({ ...d, completed: !!byDate[d.date] }))
 }
 
+/** Returns an array of 7 entries (oldest to newest) with that day's logged calories. */
+export async function getWeeklyCalories(userId) {
+  const since = new Date()
+  since.setDate(since.getDate() - 6)
+  const sinceStr = since.toISOString().slice(0, 10)
+
+  const { data } = await supabase
+    .from('meal_logs')
+    .select('logged_date, calories')
+    .eq('user_id', userId)
+    .gte('logged_date', sinceStr)
+
+  const byDate = {}
+  ;(data ?? []).forEach((row) => {
+    byDate[row.logged_date] = (byDate[row.logged_date] || 0) + Number(row.calories || 0)
+  })
+
+  return buildEmptyWeek().map((d) => ({ ...d, calories: Math.round(byDate[d.date] || 0) }))
+}
+
 export async function getWeightHistory(userId, limitCount = 8) {
   const { data } = await supabase
     .from('body_measurements')

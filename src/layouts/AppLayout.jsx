@@ -21,7 +21,7 @@ export default function AppLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <DemoModeBanner />
         <AppHeader title={current?.label ?? 'FitTrack AI'} />
-        <main className="flex-1 pb-20 lg:pb-0">
+        <main className="flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
           <Outlet />
         </main>
       </div>

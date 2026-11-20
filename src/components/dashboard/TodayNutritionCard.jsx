@@ -40,6 +40,8 @@ export default function TodayNutritionCard({ meals, calorieTarget, proteinTarget
         <div className="mt-4 flex flex-col gap-3">
           <Bar label="Calories" value={meals.calories} target={calorieTarget} unit="" />
           <Bar label="Protein" value={meals.protein_g} target={proteinTarget} unit="g" />
+          <Bar label="Carbs" value={meals.carbs_g} target={null} unit="g" />
+          <Bar label="Fat" value={meals.fat_g} target={null} unit="g" />
         </div>
       )}
     </Card>

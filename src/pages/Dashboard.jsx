@@ -5,35 +5,59 @@ import Button from '../components/ui/Button'
 import { useAuth } from '../hooks/useAuth'
 import { useDashboardData } from '../hooks/useDashboardData'
 import { calculateCalorieTarget, calculateProteinTarget, calculateBMI, bmiCategory } from '../utils/nutritionCalculations'
+import { goalOptions } from '../data/onboardingOptions'
 import StatCard from '../components/dashboard/StatCard'
 import WaterTracker from '../components/dashboard/WaterTracker'
 import TodayWorkoutCard from '../components/dashboard/TodayWorkoutCard'
 import TodayNutritionCard from '../components/dashboard/TodayNutritionCard'
+import CalorieRing from '../components/dashboard/CalorieRing'
 import WeeklyConsistencyChart from '../components/dashboard/WeeklyConsistencyChart'
+import WeeklyCalorieChart from '../components/dashboard/WeeklyCalorieChart'
 import WeightProgressChart from '../components/dashboard/WeightProgressChart'
 import AIInsightsCard from '../components/dashboard/AIInsightsCard'
 
 const firstName = (name) => (name ? name.split(' ')[0] : null)
 
+function initials(name) {
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/)
+  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase()
+}
+
 export default function Dashboard() {
   const { profile } = useAuth()
-  const { water, meals, todayWorkout, weeklyConsistency, weightHistory, loading, updateWater } = useDashboardData()
+  const { water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory, loading, updateWater } =
+    useDashboardData()
 
   const calorieTarget = profile ? calculateCalorieTarget(profile) : null
   const proteinTarget = profile ? calculateProteinTarget(profile) : null
   const bmi = profile ? calculateBMI(profile) : null
+  const goalLabel = goalOptions.find((g) => g.value === profile?.fitness_goal)?.title
 
   const greeting = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
     <Container className="max-w-5xl py-6 sm:py-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-sm text-text-secondary">
-            {greeting}
-            {firstName(profile?.full_name) ? `, ${firstName(profile.full_name)}` : ''}
-          </p>
-          <h2 className="text-2xl font-extrabold text-text">Today&rsquo;s overview</h2>
+        <div className="flex items-center gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-success-soft text-sm font-bold text-primary">
+            {initials(profile?.full_name)}
+          </div>
+          <div>
+            <p className="text-sm text-text-secondary">
+              {greeting}
+              {firstName(profile?.full_name) ? `, ${firstName(profile.full_name)}` : ''} &middot; {today}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-2xl font-extrabold text-text">Today&rsquo;s overview</h2>
+              {goalLabel && (
+                <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold text-text-secondary">
+                  {goalLabel}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button as={Link} to="/workouts" size="sm" variant="secondary">
@@ -78,11 +102,16 @@ export default function Dashboard() {
             />
           </div>
 
+          <div className="mt-5">
+            <CalorieRing consumed={meals.calories} target={calorieTarget} />
+          </div>
+
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             <WaterTracker glasses={water} onChange={updateWater} />
             <TodayWorkoutCard session={todayWorkout} />
             <TodayNutritionCard meals={meals} calorieTarget={calorieTarget} proteinTarget={proteinTarget} />
             <WeeklyConsistencyChart days={weeklyConsistency} />
+            <WeeklyCalorieChart days={weeklyCalories} target={calorieTarget} />
             <AIInsightsCard
               weightHistory={weightHistory}
               weeklyConsistency={weeklyConsistency}
