@@ -30,8 +30,8 @@ export default function CalorieRing({ consumed, target }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-2xl font-extrabold leading-none text-text">{Math.round(consumed).toLocaleString('en-IN')}</p>
-          <p className="mt-1 text-[0.7rem] text-text-secondary">of {target ? target.toLocaleString('en-IN') : '—'} kcal</p>
+          <p className="text-3xl font-extrabold leading-none tracking-tight text-text">{Math.round(consumed).toLocaleString('en-IN')}</p>
+          <p className="mt-1.5 text-[0.7rem] text-text-secondary">of {target ? target.toLocaleString('en-IN') : '—'} kcal</p>
         </div>
       </div>
       <div className="text-center sm:text-left">

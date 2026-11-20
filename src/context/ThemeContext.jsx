@@ -5,10 +5,12 @@ export const ThemeContext = createContext(null)
 const STORAGE_KEY = 'fittrack-theme'
 
 function getInitialTheme() {
-  if (typeof window === 'undefined') return 'light'
+  if (typeof window === 'undefined') return 'dark'
   const stored = window.localStorage.getItem(STORAGE_KEY)
   if (stored === 'light' || stored === 'dark') return stored
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  // Dark is the default brand identity — light is an explicit opt-out,
+  // not something we infer from system preference.
+  return 'dark'
 }
 
 export function ThemeProvider({ children }) {
