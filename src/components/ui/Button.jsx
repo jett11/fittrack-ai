@@ -1,6 +1,6 @@
 const variants = {
   primary:
-    'bg-primary text-primary-foreground hover:brightness-105 active:brightness-95 shadow-[0_1px_2px_rgb(16_24_32/8%)]',
+    'bg-primary text-primary-foreground hover:brightness-105 active:brightness-95 shadow-[var(--shadow-card)]',
   secondary:
     'bg-surface text-text border border-border hover:bg-surface-2',
   accent:

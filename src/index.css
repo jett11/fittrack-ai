@@ -13,6 +13,17 @@
   --color-white: #ffffff;
   --color-muted: #64748b;
 
+  /* Dark-first premium palette */
+  --color-bg-deep: #080b09;
+  --color-bg-secondary: #101510;
+  --color-card-dark: #151c17;
+  --color-card-elevated: #1b251e;
+  --color-lime-neon: #c6ff00;
+  --color-green-secondary: #35e58b;
+  --color-emerald-brand: #16c784;
+  --color-soft-green: #b5f5c9;
+  --color-text-muted-dark: #707b73;
+
   --radius-card: 18px;
   --radius-card-sm: 14px;
   --radius-card-lg: 20px;
@@ -22,6 +33,7 @@
   --color-surface-2: var(--surface-2);
   --color-text: var(--text);
   --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -38,6 +50,7 @@
   --surface-2: var(--color-mint);
   --text: var(--color-navy);
   --text-secondary: var(--color-muted);
+  --text-muted: #94a3b8;
   --border: rgb(16 24 32 / 8%);
   --primary: var(--color-emerald);
   --primary-foreground: var(--color-white);
@@ -50,20 +63,21 @@
 }
 
 .dark {
-  --bg: var(--color-navy);
-  --surface: #16212b;
-  --surface-2: #1b2932;
-  --text: var(--color-offwhite);
-  --text-secondary: #92a2af;
-  --border: rgb(247 250 248 / 10%);
-  --primary: var(--color-emerald);
-  --primary-foreground: var(--color-navy);
-  --accent: var(--color-lime);
-  --accent-foreground: var(--color-navy);
-  --danger: #f08277;
-  --danger-soft: rgb(240 130 119 / 14%);
-  --success-soft: rgb(24 199 138 / 16%);
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 25%), 0 12px 32px rgb(0 0 0 / 30%);
+  --bg: var(--color-bg-deep);
+  --surface: var(--color-card-dark);
+  --surface-2: var(--color-card-elevated);
+  --text: #ffffff;
+  --text-secondary: #a0aaa3;
+  --text-muted: var(--color-text-muted-dark);
+  --border: rgb(255 255 255 / 8%);
+  --primary: var(--color-lime-neon);
+  --primary-foreground: #0c1310;
+  --accent: var(--color-green-secondary);
+  --accent-foreground: #0c1310;
+  --danger: #ff6b5e;
+  --danger-soft: rgb(255 107 94 / 14%);
+  --success-soft: rgb(22 199 132 / 16%);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 35%), 0 12px 32px rgb(0 0 0 / 40%);
 }
 
 html {
