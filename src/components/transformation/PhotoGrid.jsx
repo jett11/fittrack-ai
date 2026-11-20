@@ -62,7 +62,9 @@ export default function PhotoGrid({ photos, onUpload, onDelete, uploading }) {
                 .sort((a, b) => new Date(a.taken_at) - new Date(b.taken_at))
                 .map((p, i) => (
                   <div key={p.id} className="overflow-hidden rounded-xl bg-surface-2">
-                    <div className="aspect-square">{p.url && <img src={p.url} alt="" className="h-full w-full object-cover" />}</div>
+                    <div className="aspect-square">
+                      {p.url && <img src={p.url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />}
+                    </div>
                     <p className="p-2 text-center text-xs font-medium text-text-secondary">
                       {i === 0 ? 'Before' : 'After'} &middot; {photoDate(p)}
                     </p>
@@ -87,7 +89,9 @@ export default function PhotoGrid({ photos, onUpload, onDelete, uploading }) {
                   compareMode ? 'cursor-pointer' : ''
                 } ${isSelected ? 'ring-2 ring-primary' : ''}`}
               >
-                {p.url && <img src={p.url} alt="" className="h-full w-full object-cover" />}
+                {p.url && (
+                  <img src={p.url} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                )}
                 <div className="absolute inset-x-0 bottom-0 bg-black/50 px-1.5 py-1 text-center text-[0.65rem] text-white">
                   {new Date(p.taken_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                 </div>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, Download, Trash2, LogOut, Crown, Bell, BellOff } from 'lucide-react'
+import { Moon, Sun, Download, Trash2, LogOut, Crown, Bell, BellOff, Smartphone } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { supabase, isDemoMode } from '../services/supabaseClient'
 import { getNotificationPreference, setNotificationPreference } from '../services/preferencesService'
 
@@ -24,6 +25,7 @@ const DATA_TABLES = [
 export default function Settings() {
   const { user, profile, signOut } = useAuth()
   const { theme, toggleTheme } = useTheme()
+  const { canInstall, promptInstall } = useInstallPrompt()
   const navigate = useNavigate()
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -104,6 +106,18 @@ export default function Settings() {
           </Button>
         )}
       </Card>
+
+      {canInstall && (
+        <Card className="mt-4 flex items-center justify-between p-5">
+          <div>
+            <p className="text-sm font-semibold text-text">Install app</p>
+            <p className="text-xs text-text-secondary">Add FitTrack AI to your home screen for quick access</p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={promptInstall}>
+            <Smartphone size={15} /> Install
+          </Button>
+        </Card>
+      )}
 
       <Card className="mt-4 flex items-center justify-between p-5">
         <div>
