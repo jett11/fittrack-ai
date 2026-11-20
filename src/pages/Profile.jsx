@@ -12,6 +12,7 @@ import {
   activityOptions,
   locationOptions,
   dietOptions,
+  equipmentOptions,
 } from '../data/onboardingOptions'
 
 const fieldsFromProfile = (p) => ({
@@ -25,6 +26,8 @@ const fieldsFromProfile = (p) => ({
   experience_level: p?.experience_level ?? '',
   activity_level: p?.activity_level ?? '',
   workout_location: p?.workout_location ?? '',
+  equipment: p?.equipment ?? [],
+  weekly_workout_target: p?.weekly_workout_target ?? '',
   dietary_preference: p?.dietary_preference ?? '',
   daily_food_budget: p?.daily_food_budget ?? '',
 })
@@ -42,6 +45,14 @@ export default function Profile() {
     setData((d) => ({ ...d, [key]: value }))
   }
 
+  const toggleEquipment = (item) => {
+    setSaved(false)
+    setData((d) => ({
+      ...d,
+      equipment: d.equipment.includes(item) ? d.equipment.filter((e) => e !== item) : [...d.equipment, item],
+    }))
+  }
+
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -52,6 +63,7 @@ export default function Profile() {
       current_weight_kg: data.current_weight_kg ? Number(data.current_weight_kg) : null,
       target_weight_kg: data.target_weight_kg ? Number(data.target_weight_kg) : null,
       daily_food_budget: data.daily_food_budget ? Number(data.daily_food_budget) : null,
+      weekly_workout_target: data.weekly_workout_target ? Number(data.weekly_workout_target) : null,
     })
     setSaving(false)
     if (!error) setSaved(true)
@@ -114,6 +126,26 @@ export default function Profile() {
               </Chip>
             ))}
           </div>
+          <div>
+            <p className="mb-2 text-sm font-semibold text-text">
+              Equipment available <span className="font-normal text-text-secondary">(optional)</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {equipmentOptions.map((item) => (
+                <Chip key={item} selected={data.equipment.includes(item)} onClick={() => toggleEquipment(item)}>
+                  {item}
+                </Chip>
+              ))}
+            </div>
+          </div>
+          <Input
+            label="Weekly workout target (sessions)"
+            type="number"
+            min="1"
+            max="14"
+            value={data.weekly_workout_target}
+            onChange={(e) => set('weekly_workout_target', e.target.value)}
+          />
         </Card>
 
         <Card className="flex flex-col gap-4 p-5">

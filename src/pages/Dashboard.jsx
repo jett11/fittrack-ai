@@ -4,6 +4,7 @@ import Container from '../components/ui/Container'
 import Button from '../components/ui/Button'
 import { useAuth } from '../hooks/useAuth'
 import { useDashboardData } from '../hooks/useDashboardData'
+import { useDailyReminder } from '../hooks/useDailyReminder'
 import { calculateCalorieTarget, calculateProteinTarget, calculateBMI, bmiCategory } from '../utils/nutritionCalculations'
 import { goalOptions } from '../data/onboardingOptions'
 import StatCard from '../components/dashboard/StatCard'
@@ -28,6 +29,8 @@ export default function Dashboard() {
   const { profile } = useAuth()
   const { water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory, loading, updateWater } =
     useDashboardData()
+
+  useDailyReminder({ water, todayWorkout, loading })
 
   const calorieTarget = profile ? calculateCalorieTarget(profile) : null
   const proteinTarget = profile ? calculateProteinTarget(profile) : null

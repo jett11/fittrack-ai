@@ -202,7 +202,7 @@ export default function Workouts() {
               description="Training volume, muscle group distribution and personal records — a Premium feature."
             />
           ) : (
-            <WorkoutAnalytics userId={user.id} />
+            <WorkoutAnalytics userId={user.id} weeklyTarget={profile?.weekly_workout_target} />
           ))}
       </div>
     </Container>

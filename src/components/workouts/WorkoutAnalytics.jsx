@@ -16,7 +16,7 @@ function StatTile({ icon: Icon, value, label }) {
   )
 }
 
-export default function WorkoutAnalytics({ userId }) {
+export default function WorkoutAnalytics({ userId, weeklyTarget }) {
   const [data, setData] = useState(null)
 
   useEffect(() => {
@@ -43,7 +43,11 @@ export default function WorkoutAnalytics({ userId }) {
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile icon={Trophy} value={data.totalWorkouts} label="Total workouts completed" />
-        <StatTile icon={CalendarCheck} value={`${data.weeklyFrequency}/7`} label="Workouts in the last 7 days" />
+        <StatTile
+          icon={CalendarCheck}
+          value={`${data.weeklyFrequency}/${weeklyTarget || 7}`}
+          label={weeklyTarget ? 'Workouts vs. your weekly target' : 'Workouts in the last 7 days'}
+        />
         <StatTile
           icon={Clock}
           value={data.totalMinutes ? `${Math.round(data.totalMinutes / 60)}h ${data.totalMinutes % 60}m` : '—'}

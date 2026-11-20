@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Moon, Sun, Download, Trash2, LogOut, Crown } from 'lucide-react'
+import { Moon, Sun, Download, Trash2, LogOut, Crown, Bell, BellOff } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../hooks/useTheme'
 import { supabase, isDemoMode } from '../services/supabaseClient'
+import { getNotificationPreference, setNotificationPreference } from '../services/preferencesService'
 
 const DATA_TABLES = [
   'profiles',
@@ -27,6 +28,28 @@ export default function Settings() {
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  const [notifLoading, setNotifLoading] = useState(true)
+
+  useEffect(() => {
+    if (isDemoMode || !user) {
+      setNotifLoading(false)
+      return
+    }
+    getNotificationPreference(user.id).then((enabled) => {
+      setNotificationsEnabled(enabled)
+      setNotifLoading(false)
+    })
+  }, [user])
+
+  const handleToggleNotifications = async () => {
+    const next = !notificationsEnabled
+    setNotificationsEnabled(next)
+    if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      await Notification.requestPermission()
+    }
+    if (!isDemoMode && user) await setNotificationPreference(user.id, next)
+  }
 
   const handleExport = async () => {
     if (isDemoMode || !user) return
@@ -90,6 +113,19 @@ export default function Settings() {
         <Button variant="secondary" size="sm" onClick={toggleTheme}>
           {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+        </Button>
+      </Card>
+
+      <Card className="mt-4 flex items-center justify-between p-5">
+        <div>
+          <p className="text-sm font-semibold text-text">Daily reminders</p>
+          <p className="text-xs text-text-secondary">
+            A browser reminder if you haven&rsquo;t logged water or a workout by evening, while the app is open
+          </p>
+        </div>
+        <Button variant="secondary" size="sm" onClick={handleToggleNotifications} disabled={notifLoading}>
+          {notificationsEnabled ? <Bell size={15} /> : <BellOff size={15} />}
+          {notificationsEnabled ? 'On' : 'Off'}
         </Button>
       </Card>
 
