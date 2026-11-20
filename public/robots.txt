@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /privacy
+Allow: /terms
+Disallow: /dashboard
+Disallow: /workouts
+Disallow: /nutrition
+Disallow: /transformation
+Disallow: /challenges
+Disallow: /upgrade
+Disallow: /profile
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /forgot-password
+
+Sitemap: https://fittrack-ai-1ip.pages.dev/sitemap.xml
