@@ -8,6 +8,7 @@ import Card from '../components/ui/Card'
 import PremiumGate from '../components/ui/PremiumGate'
 import WorkoutCard from '../components/workouts/WorkoutCard'
 import ExerciseLibrary from '../components/workouts/ExerciseLibrary'
+import WorkoutAnalytics from '../components/workouts/WorkoutAnalytics'
 import { useWorkouts } from '../hooks/useWorkouts'
 import { useAuth } from '../hooks/useAuth'
 import { isDemoMode } from '../services/supabaseClient'
@@ -17,7 +18,42 @@ const TABS = [
   { value: 'routines', label: 'My Routines' },
   { value: 'library', label: 'Exercise Library' },
   { value: 'history', label: 'History' },
+  { value: 'analytics', label: 'Analytics' },
 ]
+
+const GOAL_FILTERS = [
+  { value: '', label: 'All goals' },
+  { value: 'muscle_gain', label: 'Muscle gain' },
+  { value: 'fat_loss', label: 'Fat loss' },
+  { value: 'general_fitness', label: 'General fitness' },
+]
+
+const LOCATION_FILTERS = [
+  { value: '', label: 'Any location' },
+  { value: 'home', label: 'Home' },
+  { value: 'gym', label: 'Gym' },
+]
+
+const LEVEL_FILTERS = [
+  { value: '', label: 'Any level' },
+  { value: 'beginner', label: 'Beginner' },
+  { value: 'intermediate', label: 'Intermediate' },
+  { value: 'advanced', label: 'Advanced' },
+]
+
+function FilterChip({ active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+        active ? 'bg-primary text-primary-foreground' : 'bg-surface-2 text-text-secondary hover:text-text'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
 
 function historyIcon(status) {
   if (status === 'completed') return <CheckCircle2 size={16} className="text-primary" />
@@ -27,9 +63,19 @@ function historyIcon(status) {
 
 export default function Workouts() {
   const [tab, setTab] = useState('templates')
+  const [goalFilter, setGoalFilter] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
+  const [levelFilter, setLevelFilter] = useState('')
   const { templates, routines, history, loading } = useWorkouts()
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const isPremium = !!profile?.is_premium
+
+  const filteredTemplates = templates.filter(
+    (w) =>
+      (!goalFilter || w.goal === goalFilter) &&
+      (!locationFilter || w.location === locationFilter || w.location === 'both') &&
+      (!levelFilter || w.level === levelFilter)
+  )
 
   return (
     <Container className="max-w-5xl py-6 sm:py-8">
@@ -57,11 +103,42 @@ export default function Workouts() {
           ) : templates.length === 0 ? (
             <p className="text-sm text-text-secondary">No templates available yet.</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {templates.map((w) => (
-                <WorkoutCard key={w.id} workout={w} />
-              ))}
-            </div>
+            <>
+              <div className="mb-4 flex flex-col gap-2">
+                <div className="flex flex-wrap gap-1.5">
+                  {GOAL_FILTERS.map((f) => (
+                    <FilterChip key={f.value} active={goalFilter === f.value} onClick={() => setGoalFilter(f.value)}>
+                      {f.label}
+                    </FilterChip>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {LOCATION_FILTERS.map((f) => (
+                    <FilterChip
+                      key={f.value}
+                      active={locationFilter === f.value}
+                      onClick={() => setLocationFilter(f.value)}
+                    >
+                      {f.label}
+                    </FilterChip>
+                  ))}
+                  {LEVEL_FILTERS.map((f) => (
+                    <FilterChip key={f.value} active={levelFilter === f.value} onClick={() => setLevelFilter(f.value)}>
+                      {f.label}
+                    </FilterChip>
+                  ))}
+                </div>
+              </div>
+              {filteredTemplates.length === 0 ? (
+                <p className="text-sm text-text-secondary">No templates match these filters.</p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredTemplates.map((w) => (
+                    <WorkoutCard key={w.id} workout={w} />
+                  ))}
+                </div>
+              )}
+            </>
           ))}
 
         {tab === 'routines' &&
@@ -116,6 +193,16 @@ export default function Workouts() {
                 </Card>
               ))}
             </div>
+          ))}
+
+        {tab === 'analytics' &&
+          (!isPremium ? (
+            <PremiumGate
+              title="See your workout analytics"
+              description="Training volume, muscle group distribution and personal records — a Premium feature."
+            />
+          ) : (
+            <WorkoutAnalytics userId={user.id} />
           ))}
       </div>
     </Container>

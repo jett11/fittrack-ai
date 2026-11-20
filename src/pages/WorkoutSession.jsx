@@ -74,14 +74,32 @@ export default function WorkoutSession() {
   }
 
   const exercises = session.workouts?.workout_exercises ?? []
+  const totalSets = exercises.reduce((sum, we) => sum + we.target_sets, 0)
+  const doneSets = Object.values(logs).filter((l) => l.completed).length
+  const progressPct = totalSets ? Math.round((doneSets / totalSets) * 100) : 0
 
   return (
     <Container className="max-w-2xl py-6 pb-28">
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="text-2xl font-extrabold text-text">{session.workouts?.name ?? 'Workout'}</h2>
         <Button variant="ghost" size="sm" onClick={handleAbandon}>
           End early
         </Button>
+      </div>
+
+      <div className="mb-5">
+        <div className="mb-1 flex items-center justify-between text-xs text-text-secondary">
+          <span>Workout progress</span>
+          <span className="font-semibold text-text">
+            {doneSets}/{totalSets} sets
+          </span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-300"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
       </div>
 
       <div className="flex flex-col gap-4">

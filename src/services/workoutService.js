@@ -165,3 +165,71 @@ export async function getWorkoutHistory(userId, limitCount = 20) {
   if (error) return []
   return data
 }
+
+const EMPTY_ANALYTICS = {
+  totalWorkouts: 0,
+  weeklyFrequency: 0,
+  totalMinutes: 0,
+  muscleGroupDistribution: [],
+  personalRecords: [],
+}
+
+/**
+ * Aggregates real session/log data into analytics. All figures are derived
+ * from actual logged sessions — nothing here is estimated or invented.
+ */
+export async function getWorkoutAnalytics(userId) {
+  if (isDemoMode) return EMPTY_ANALYTICS
+
+  const since = new Date()
+  since.setDate(since.getDate() - 6)
+
+  const [{ data: sessions }, { data: logs }] = await Promise.all([
+    supabase
+      .from('workout_sessions')
+      .select('id, status, started_at, completed_at')
+      .eq('user_id', userId)
+      .eq('status', 'completed'),
+    // workout_logs has no user_id column, but its RLS policy already scopes
+    // rows to sessions owned by the requesting user — no manual filter needed.
+    supabase
+      .from('workout_logs')
+      .select('exercise_id, weight_kg, reps_completed, completed, exercises(name, muscle_group)')
+      .eq('completed', true),
+  ])
+
+  const completed = sessions ?? []
+  const totalWorkouts = completed.length
+  const weeklyFrequency = completed.filter((s) => new Date(s.started_at) >= since).length
+
+  const totalMinutes = completed.reduce((sum, s) => {
+    if (!s.completed_at) return sum
+    const mins = (new Date(s.completed_at) - new Date(s.started_at)) / 60000
+    return sum + (mins > 0 && mins < 6 * 60 ? mins : 0) // guard against bad/missing timestamps
+  }, 0)
+
+  const byMuscle = {}
+  const bestByExercise = {}
+  ;(logs ?? []).forEach((log) => {
+    const group = log.exercises?.muscle_group ?? 'Other'
+    byMuscle[group] = (byMuscle[group] || 0) + 1
+
+    const weight = Number(log.weight_kg)
+    if (weight > 0) {
+      const name = log.exercises?.name ?? 'Exercise'
+      if (!bestByExercise[name] || weight > bestByExercise[name].weight) {
+        bestByExercise[name] = { name, weight, reps: log.reps_completed }
+      }
+    }
+  })
+
+  const muscleGroupDistribution = Object.entries(byMuscle)
+    .map(([group, sets]) => ({ group, sets }))
+    .sort((a, b) => b.sets - a.sets)
+
+  const personalRecords = Object.values(bestByExercise)
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 5)
+
+  return { totalWorkouts, weeklyFrequency, totalMinutes: Math.round(totalMinutes), muscleGroupDistribution, personalRecords }
+}
