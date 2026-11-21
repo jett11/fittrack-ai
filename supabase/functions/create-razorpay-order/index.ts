@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       amount: PREMIUM_PRICE_PAISE,
       currency: 'INR',
-      receipt: `premium_${user.id}_${Date.now()}`,
+      receipt: `pm_${user.id}_${Date.now()}`.slice(0, 56),
       notes: { user_id: user.id, product: 'fittrack-ai-premium-monthly' },
     }),
   })
