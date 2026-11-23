@@ -1,6 +1,7 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Logo from '../components/landing/Logo'
 import Container from '../components/ui/Container'
+import PageTransition from '../components/app/PageTransition'
 
 export default function AuthLayout() {
   return (
@@ -13,7 +14,7 @@ export default function AuthLayout() {
         </Container>
       </header>
       <main className="flex flex-1 items-center justify-center px-4 pb-16">
-        <Outlet />
+        <PageTransition />
       </main>
     </div>
   )
