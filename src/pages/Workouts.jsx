@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { Plus, CheckCircle2, XCircle, Clock, MapPin } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Button from '../components/ui/Button'
 import Tabs from '../components/ui/Tabs'
@@ -55,6 +55,16 @@ function FilterChip({ active, onClick, children }) {
   )
 }
 
+const CARDIO_LABELS = { run: 'Run', walk: 'Walk', cycle: 'Ride' }
+
+function historyLabel(s) {
+  if (s.session_type === 'cardio') {
+    const label = CARDIO_LABELS[s.cardio_type] ?? 'Cardio'
+    return s.distance_km ? `${label} — ${s.distance_km}km` : label
+  }
+  return s.workouts?.name ?? 'Workout'
+}
+
 function historyIcon(status) {
   if (status === 'completed') return <CheckCircle2 size={16} className="text-primary" />
   if (status === 'abandoned') return <XCircle size={16} className="text-text-secondary" />
@@ -81,11 +91,16 @@ export default function Workouts() {
     <Container className="max-w-5xl py-6 sm:py-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-extrabold text-text">Workouts</h2>
-        {isPremium && (
-          <Button as={Link} to="/workouts/new" size="sm">
-            <Plus size={15} /> New routine
+        <div className="flex gap-2">
+          <Button as={Link} to="/workouts/cardio" size="sm" variant="secondary">
+            <MapPin size={15} /> Track cardio
           </Button>
-        )}
+          {isPremium && (
+            <Button as={Link} to="/workouts/new" size="sm">
+              <Plus size={15} /> New routine
+            </Button>
+          )}
+        </div>
       </div>
 
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
@@ -183,7 +198,7 @@ export default function Workouts() {
                   <div className="flex items-center gap-3">
                     {historyIcon(s.status)}
                     <div>
-                      <p className="text-sm font-semibold text-text">{s.workouts?.name ?? 'Workout'}</p>
+                      <p className="text-sm font-semibold text-text">{historyLabel(s)}</p>
                       <p className="text-xs text-text-secondary">
                         {new Date(s.started_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>

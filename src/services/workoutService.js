@@ -210,6 +210,33 @@ export async function getWorkoutHistory(userId, limitCount = 20) {
   return data
 }
 
+export async function startCardioSession(userId, cardioType) {
+  if (isDemoMode) return { error: DEMO_ERROR }
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .insert({ user_id: userId, session_type: 'cardio', cardio_type: cardioType, status: 'in_progress' })
+    .select()
+    .single()
+  return { data, error }
+}
+
+export async function completeCardioSession(sessionId, { distanceKm, durationSeconds, routePoints }) {
+  if (isDemoMode) return { error: DEMO_ERROR }
+  const avgPace = distanceKm > 0 ? Math.round(durationSeconds / distanceKm) : null
+  const { error } = await supabase
+    .from('workout_sessions')
+    .update({
+      status: 'completed',
+      completed_at: new Date().toISOString(),
+      distance_km: Math.round(distanceKm * 100) / 100,
+      avg_pace_sec_per_km: avgPace,
+      // Sampled, not every GPS ping — keeps the JSON payload small.
+      route_points: routePoints.filter((_, i) => i % Math.ceil(routePoints.length / 200 || 1) === 0),
+    })
+    .eq('id', sessionId)
+  return { error }
+}
+
 const EMPTY_ANALYTICS = {
   totalWorkouts: 0,
   weeklyFrequency: 0,

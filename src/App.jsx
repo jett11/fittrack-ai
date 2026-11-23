@@ -17,6 +17,7 @@ const Workouts = lazy(() => import('./pages/Workouts'))
 const WorkoutDetail = lazy(() => import('./pages/WorkoutDetail'))
 const RoutineBuilder = lazy(() => import('./pages/RoutineBuilder'))
 const WorkoutSession = lazy(() => import('./pages/WorkoutSession'))
+const CardioSession = lazy(() => import('./pages/CardioSession'))
 const Nutrition = lazy(() => import('./pages/Nutrition'))
 const Transformation = lazy(() => import('./pages/Transformation'))
 const Challenges = lazy(() => import('./pages/Challenges'))
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="/workouts" element={<Workouts />} />
             <Route path="/workouts/new" element={<RoutineBuilder />} />
             <Route path="/workouts/session" element={<WorkoutSession />} />
+            <Route path="/workouts/cardio" element={<CardioSession />} />
             <Route path="/workouts/:id" element={<WorkoutDetail />} />
             <Route path="/nutrition" element={<Nutrition />} />
             <Route path="/transformation" element={<Transformation />} />

@@ -81,3 +81,56 @@ export function renderWorkoutShareCard({ name, durationMin, totalSets, volumeKg 
 
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
 }
+
+const CARDIO_LABELS = { run: 'Run Complete', walk: 'Walk Complete', cycle: 'Ride Complete' }
+
+/**
+ * Same visual system as renderWorkoutShareCard, for a finished cardio
+ * session (distance/duration/pace instead of sets/volume).
+ */
+export function renderCardioShareCard({ cardioType, distanceKm, durationMin, paceLabel }) {
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d')
+
+  const bg = ctx.createLinearGradient(0, 0, 0, H)
+  bg.addColorStop(0, '#080b09')
+  bg.addColorStop(1, '#101710')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, W, H)
+
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#c6ff00'
+  ctx.font = '700 36px sans-serif'
+  ctx.fillText('FITTRACK AI', W / 2, 140)
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '800 72px sans-serif'
+  ctx.fillText(CARDIO_LABELS[cardioType] ?? 'Cardio Complete', W / 2, 260)
+
+  const tileY = 440
+  const tileW = 280
+  const tileH = 280
+  const gap = 40
+  const totalW = tileW * 3 + gap * 2
+  const startX = (W - totalW) / 2
+
+  statTile(ctx, startX, tileY, tileW, tileH, distanceKm.toFixed(2), 'KM')
+  statTile(ctx, startX + tileW + gap, tileY, tileW, tileH, `${durationMin}`, 'MINUTES')
+  statTile(ctx, startX + (tileW + gap) * 2, tileY, tileW, tileH, paceLabel, 'MIN/KM')
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = '600 32px sans-serif'
+  ctx.fillText(
+    new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }),
+    W / 2,
+    tileY + tileH + 90
+  )
+
+  ctx.fillStyle = '#6b7a70'
+  ctx.font = '500 28px sans-serif'
+  ctx.fillText('Track your own workouts free — fittrack-ai-1ip.pages.dev', W / 2, H - 80)
+
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))
+}
