@@ -11,6 +11,7 @@ import { calculateCalorieTarget, calculateProteinTarget, calculateBMI, bmiCatego
 import { goalOptions } from '../data/onboardingOptions'
 import StatCard from '../components/dashboard/StatCard'
 import WaterTracker from '../components/dashboard/WaterTracker'
+import DailyCheckin from '../components/dashboard/DailyCheckin'
 import TodayWorkoutCard from '../components/dashboard/TodayWorkoutCard'
 import TodayNutritionCard from '../components/dashboard/TodayNutritionCard'
 import CalorieRing from '../components/dashboard/CalorieRing'
@@ -30,7 +31,7 @@ function initials(name) {
 
 export default function Dashboard() {
   const { profile } = useAuth()
-  const { water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory, loading, updateWater } =
+  const { water, checkin, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory, loading, updateWater, updateCheckin } =
     useDashboardData()
   const { challenges, completions, toggle: toggleChallenge } = useChallenges()
 
@@ -134,6 +135,7 @@ export default function Dashboard() {
 
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             <WaterTracker glasses={water} onChange={updateWater} />
+            <DailyCheckin checkin={checkin} onChange={updateCheckin} />
             <TodayWorkoutCard session={todayWorkout} />
             <TodayNutritionCard meals={meals} calorieTarget={calorieTarget} proteinTarget={proteinTarget} />
             <WeeklyConsistencyChart days={weeklyConsistency} />

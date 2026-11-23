@@ -44,6 +44,35 @@ export async function setTodayWater(userId, glasses) {
   }
 }
 
+export async function getTodayCheckin(userId) {
+  try {
+    const { data, error } = await supabase
+      .from('daily_metrics')
+      .select('sleep_hours, mood, energy')
+      .eq('user_id', userId)
+      .eq('metric_date', todayStr())
+      .maybeSingle()
+    if (error) throw error
+    return { sleepHours: data?.sleep_hours ?? null, mood: data?.mood ?? null, energy: data?.energy ?? null }
+  } catch {
+    // Column may not exist yet if migration 0015 hasn't been run — degrade gracefully.
+    return { sleepHours: null, mood: null, energy: null }
+  }
+}
+
+export async function setTodayCheckin(userId, { sleepHours, mood, energy }) {
+  try {
+    const { error } = await supabase.from('daily_metrics').upsert(
+      { user_id: userId, metric_date: todayStr(), sleep_hours: sleepHours, mood, energy },
+      { onConflict: 'user_id,metric_date' }
+    )
+    if (error) throw error
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function getTodayMealTotals(userId) {
   const { data, error } = await supabase
     .from('meal_logs')

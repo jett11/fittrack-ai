@@ -4,6 +4,8 @@ import { isDemoMode } from '../services/supabaseClient'
 import {
   getTodayWater,
   setTodayWater,
+  getTodayCheckin,
+  setTodayCheckin,
   getTodayMealTotals,
   getTodayWorkoutSession,
   getWeeklyConsistency,
@@ -14,6 +16,7 @@ import {
 
 const EMPTY = {
   water: 0,
+  checkin: { sleepHours: null, mood: null, energy: null },
   meals: { calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, count: 0 },
   todayWorkout: null,
   weeklyConsistency: buildEmptyWeek(),
@@ -36,8 +39,9 @@ export function useDashboardData() {
       return
     }
 
-    const [water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory] = await Promise.all([
+    const [water, checkin, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory] = await Promise.all([
       getTodayWater(user.id),
+      getTodayCheckin(user.id),
       getTodayMealTotals(user.id),
       getTodayWorkoutSession(user.id),
       getWeeklyConsistency(user.id),
@@ -45,7 +49,7 @@ export function useDashboardData() {
       getWeightHistory(user.id),
     ])
 
-    setData({ water, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory })
+    setData({ water, checkin, meals, todayWorkout, weeklyConsistency, weeklyCalories, weightHistory })
     setLoading(false)
   }, [user])
 
@@ -58,5 +62,13 @@ export function useDashboardData() {
     if (!isDemoMode && user) await setTodayWater(user.id, glasses)
   }
 
-  return { ...data, loading, refresh: load, updateWater }
+  const updateCheckin = async (patch) => {
+    setData((d) => {
+      const next = { ...d.checkin, ...patch }
+      if (!isDemoMode && user) setTodayCheckin(user.id, next)
+      return { ...d, checkin: next }
+    })
+  }
+
+  return { ...data, loading, refresh: load, updateWater, updateCheckin }
 }
