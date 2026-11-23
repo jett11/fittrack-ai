@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
 import { Trophy, Flame, Clock, CalendarCheck } from 'lucide-react'
 import Card from '../ui/Card'
+import MuscleHeatmap from './MuscleHeatmap'
 import { getWorkoutAnalytics } from '../../services/workoutService'
 
 function StatTile({ icon: Icon, value, label }) {
@@ -55,6 +56,14 @@ export default function WorkoutAnalytics({ userId, weeklyTarget }) {
         />
         <StatTile icon={Flame} value={data.personalRecords.length} label="Exercises with a logged PR" />
       </div>
+
+      {data.muscleGroupDistribution.length > 0 && (
+        <Card className="p-5">
+          <p className="mb-1 text-sm font-semibold text-text">Recovery heatmap</p>
+          <p className="mb-4 text-xs text-text-secondary">Which muscle groups you've hit recently, from your own logged sets</p>
+          <MuscleHeatmap distribution={data.muscleGroupDistribution} />
+        </Card>
+      )}
 
       {data.muscleGroupDistribution.length > 0 && (
         <Card className="p-5">

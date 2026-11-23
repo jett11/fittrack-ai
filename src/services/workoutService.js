@@ -239,7 +239,7 @@ export async function getWorkoutAnalytics(userId) {
     // rows to sessions owned by the requesting user — no manual filter needed.
     supabase
       .from('workout_logs')
-      .select('session_id, exercise_id, weight_kg, reps_completed, completed, exercises(name, muscle_group)')
+      .select('session_id, exercise_id, weight_kg, reps_completed, completed, created_at, exercises(name, muscle_group)')
       .eq('completed', true),
   ])
 
@@ -254,10 +254,16 @@ export async function getWorkoutAnalytics(userId) {
   }, 0)
 
   const byMuscle = {}
+  const lastTrainedByMuscle = {}
   const bestByExercise = {}
   ;(logs ?? []).forEach((log) => {
     const group = log.exercises?.muscle_group ?? 'Other'
     byMuscle[group] = (byMuscle[group] || 0) + 1
+
+    const loggedAt = new Date(log.created_at).getTime()
+    if (!lastTrainedByMuscle[group] || loggedAt > lastTrainedByMuscle[group]) {
+      lastTrainedByMuscle[group] = loggedAt
+    }
 
     const weight = Number(log.weight_kg)
     if (weight > 0) {
@@ -268,8 +274,13 @@ export async function getWorkoutAnalytics(userId) {
     }
   })
 
+  const now = Date.now()
   const muscleGroupDistribution = Object.entries(byMuscle)
-    .map(([group, sets]) => ({ group, sets }))
+    .map(([group, sets]) => ({
+      group,
+      sets,
+      daysSinceTrained: Math.floor((now - lastTrainedByMuscle[group]) / 86400000),
+    }))
     .sort((a, b) => b.sets - a.sets)
 
   const personalRecords = Object.values(bestByExercise)
