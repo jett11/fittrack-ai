@@ -73,3 +73,70 @@ const BADGE_THRESHOLDS = [
 export function earnedBadges(bestStreak) {
   return BADGE_THRESHOLDS.filter((b) => bestStreak >= b.days)
 }
+
+// No 0/O/1/I — avoids ambiguous codes when read aloud or handwritten.
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+function generateJoinCode(length = 6) {
+  let code = ''
+  for (let i = 0; i < length; i++) code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]
+  return code
+}
+
+export async function createChallengeGroup(userId, { name, challengeId }) {
+  if (isDemoMode) return { error: DEMO_ERROR }
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const joinCode = generateJoinCode()
+    const { data, error } = await supabase
+      .from('challenge_groups')
+      .insert({ name, challenge_id: challengeId, join_code: joinCode, created_by: userId })
+      .select()
+      .single()
+    if (!error) {
+      await supabase.from('challenge_group_members').insert({ group_id: data.id, user_id: userId })
+      return { data }
+    }
+    if (error.code !== '23505') return { error } // not a unique-violation on join_code — give up
+  }
+  return { error: { message: 'Could not generate a unique join code — try again.' } }
+}
+
+export async function joinChallengeGroupByCode(userId, joinCode) {
+  if (isDemoMode) return { error: DEMO_ERROR }
+  const code = joinCode.trim().toUpperCase()
+  const { data: group, error: findError } = await supabase
+    .from('challenge_groups')
+    .select('*, challenges(title)')
+    .eq('join_code', code)
+    .maybeSingle()
+  if (findError || !group) return { error: { message: 'No group found with that code.' } }
+
+  const { error } = await supabase
+    .from('challenge_group_members')
+    .upsert({ group_id: group.id, user_id: userId }, { onConflict: 'group_id,user_id' })
+  if (error) return { error }
+  return { data: group }
+}
+
+export async function getMyGroups(userId) {
+  if (isDemoMode) return []
+  const { data, error } = await supabase
+    .from('challenge_group_members')
+    .select('joined_at, challenge_groups(id, name, join_code, challenge_id, challenges(title))')
+    .eq('user_id', userId)
+  if (error) return []
+  return data.map((row) => ({ ...row.challenge_groups, joined_at: row.joined_at }))
+}
+
+export async function getGroupLeaderboard(groupId) {
+  if (isDemoMode) return []
+  const { data, error } = await supabase.rpc('get_group_leaderboard', { p_group_id: groupId })
+  if (error) return []
+  return data
+}
+
+export async function leaveGroup(groupId, userId) {
+  if (isDemoMode) return { error: DEMO_ERROR }
+  const { error } = await supabase.from('challenge_group_members').delete().eq('group_id', groupId).eq('user_id', userId)
+  return { error }
+}

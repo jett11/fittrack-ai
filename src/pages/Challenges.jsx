@@ -4,11 +4,13 @@ import Card from '../components/ui/Card'
 import Tabs from '../components/ui/Tabs'
 import ChallengeCard from '../components/challenges/ChallengeCard'
 import InsightsPanel from '../components/challenges/InsightsPanel'
+import GroupChallengesPanel from '../components/challenges/GroupChallengesPanel'
 import { useChallenges } from '../hooks/useChallenges'
 import { isDemoMode } from '../services/supabaseClient'
 
 const TABS = [
   { value: 'challenges', label: 'Challenges' },
+  { value: 'groups', label: 'Groups' },
   { value: 'insights', label: 'Insights' },
 ]
 
@@ -59,6 +61,8 @@ export default function Challenges() {
             )}
           </div>
         )
+      ) : tab === 'groups' ? (
+        <GroupChallengesPanel challenges={challenges} />
       ) : (
         <div className="mt-5">
           <InsightsPanel />
