@@ -9,6 +9,7 @@ import { useTheme } from '../hooks/useTheme'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 import { supabase, isDemoMode } from '../services/supabaseClient'
 import { getNotificationPreference, setNotificationPreference } from '../services/preferencesService'
+import { isPushSupported, getPushSubscription, subscribeToPush, unsubscribeFromPush } from '../services/pushService'
 
 const DATA_TABLES = [
   'profiles',
@@ -32,6 +33,9 @@ export default function Settings() {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [notifLoading, setNotifLoading] = useState(true)
+  const [pushEnabled, setPushEnabled] = useState(false)
+  const [pushLoading, setPushLoading] = useState(true)
+  const [pushError, setPushError] = useState('')
 
   useEffect(() => {
     if (isDemoMode || !user) {
@@ -43,6 +47,29 @@ export default function Settings() {
       setNotifLoading(false)
     })
   }, [user])
+
+  useEffect(() => {
+    if (isDemoMode || !isPushSupported()) {
+      setPushLoading(false)
+      return
+    }
+    getPushSubscription().then((sub) => {
+      setPushEnabled(!!sub)
+      setPushLoading(false)
+    })
+  }, [])
+
+  const handleTogglePush = async () => {
+    setPushError('')
+    if (pushEnabled) {
+      await unsubscribeFromPush()
+      setPushEnabled(false)
+      return
+    }
+    const { error } = await subscribeToPush(user.id)
+    if (error) return setPushError(error.message)
+    setPushEnabled(true)
+  }
 
   const handleToggleNotifications = async () => {
     const next = !notificationsEnabled
@@ -142,6 +169,24 @@ export default function Settings() {
           {notificationsEnabled ? 'On' : 'Off'}
         </Button>
       </Card>
+
+      {!isDemoMode && isPushSupported() && (
+        <Card className="mt-4 p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-text">Push notifications</p>
+              <p className="text-xs text-text-secondary">
+                A real notification if you haven&rsquo;t opened the app in a couple days — works even when it&rsquo;s closed
+              </p>
+            </div>
+            <Button variant="secondary" size="sm" onClick={handleTogglePush} disabled={pushLoading}>
+              {pushEnabled ? <Bell size={15} /> : <BellOff size={15} />}
+              {pushEnabled ? 'On' : 'Off'}
+            </Button>
+          </div>
+          {pushError && <p className="mt-2 text-xs font-medium text-danger">{pushError}</p>}
+        </Card>
+      )}
 
       <Card className="mt-4 flex items-center justify-between p-5">
         <div>
