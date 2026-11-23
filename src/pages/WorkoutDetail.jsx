@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { Dumbbell, ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, Play } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
+import Poster from '../components/ui/Poster'
 import { useAuth } from '../hooks/useAuth'
 import { getWorkoutWithExercises, startSession, deleteRoutine } from '../services/workoutService'
+import { getWorkoutPosterUrl } from '../data/workoutPosters'
 
 export default function WorkoutDetail() {
   const { id } = useParams()
@@ -55,27 +57,37 @@ export default function WorkoutDetail() {
   }
 
   return (
-    <Container className="max-w-2xl py-8">
+    <Container className="max-w-2xl py-6 sm:py-8">
       <Link to="/workouts" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text">
         <ArrowLeft size={15} /> Back
       </Link>
 
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-extrabold text-text">{workout.name}</h2>
-          <p className="mt-1 text-sm text-text-secondary">
-            {workout.workout_exercises.length} exercises &middot; {workout.location}
-          </p>
-        </div>
-        {!workout.is_template && (
-          <Button variant="ghost" size="sm" onClick={handleDelete}>
-            <Trash2 size={14} /> Delete
-          </Button>
-        )}
-      </div>
+      <Card className="overflow-hidden p-0">
+        <Poster src={getWorkoutPosterUrl(workout)} aspect="4/3">
+          <div className="flex h-full flex-col justify-between p-4">
+            <div className="flex items-start justify-end">
+              {!workout.is_template && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black/50"
+                >
+                  <Trash2 size={13} /> Delete
+                </button>
+              )}
+            </div>
+            <div>
+              <h2 className="text-2xl font-extrabold text-white drop-shadow-sm">{workout.name}</h2>
+              <p className="mt-1 text-sm text-white/80">
+                {workout.workout_exercises.length} exercises &middot; {workout.location}
+              </p>
+            </div>
+          </div>
+        </Poster>
+      </Card>
 
-      <Button onClick={handleStart} disabled={starting} size="lg" className="mt-5 w-full sm:w-auto">
-        <Dumbbell size={16} /> {starting ? 'Starting…' : 'Start this workout'}
+      <Button onClick={handleStart} disabled={starting} size="lg" className="mt-4 w-full sm:w-auto">
+        <Play size={16} fill="currentColor" /> {starting ? 'Starting…' : 'Start this workout'}
       </Button>
 
       <div className="mt-6 flex flex-col gap-2.5">

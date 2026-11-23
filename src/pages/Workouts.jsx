@@ -133,8 +133,8 @@ export default function Workouts() {
                 <p className="text-sm text-text-secondary">No templates match these filters.</p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredTemplates.map((w) => (
-                    <WorkoutCard key={w.id} workout={w} />
+                  {filteredTemplates.map((w, i) => (
+                    <WorkoutCard key={w.id} workout={w} index={i} />
                   ))}
                 </div>
               )}
@@ -158,8 +158,8 @@ export default function Workouts() {
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {routines.map((w) => (
-                <WorkoutCard key={w.id} workout={w} />
+              {routines.map((w, i) => (
+                <WorkoutCard key={w.id} workout={w} index={i} />
               ))}
             </div>
           ))}
