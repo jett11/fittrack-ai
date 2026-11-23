@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Circle, Flag, TrendingUp } from 'lucide-react'
+import { CheckCircle2, Circle, Flag, TrendingUp, PartyPopper } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import RestTimer from '../components/workouts/RestTimer'
+import WorkoutShareCard from '../components/workouts/WorkoutShareCard'
 import { useAuth } from '../hooks/useAuth'
 import {
   getActiveSession,
@@ -26,6 +27,7 @@ export default function WorkoutSession() {
   const [loading, setLoading] = useState(true)
   const [resting, setResting] = useState(null)
   const [finishing, setFinishing] = useState(false)
+  const [summary, setSummary] = useState(null)
 
   useEffect(() => {
     getActiveSession(user.id).then(async (s) => {
@@ -57,7 +59,18 @@ export default function WorkoutSession() {
   const handleFinish = async () => {
     setFinishing(true)
     await completeSession(session.id)
-    navigate('/dashboard')
+    const completedLogs = Object.values(logs).filter((l) => l.completed)
+    const durationMin = Math.max(1, Math.round((Date.now() - new Date(session.started_at)) / 60000))
+    const volumeKg = Math.round(
+      completedLogs.reduce((sum, l) => sum + (Number(l.weight_kg) || 0) * (Number(l.reps_completed) || 0), 0)
+    )
+    setSummary({
+      name: session.workouts?.name ?? 'Workout',
+      durationMin,
+      totalSets: completedLogs.length,
+      volumeKg,
+    })
+    setFinishing(false)
   }
 
   const handleAbandon = async () => {
@@ -80,6 +93,24 @@ export default function WorkoutSession() {
         <p className="text-sm text-text-secondary">No workout in progress right now.</p>
         <Button onClick={() => navigate('/workouts')} size="sm" className="mt-3">
           Browse workouts
+        </Button>
+      </Container>
+    )
+  }
+
+  if (summary) {
+    return (
+      <Container className="max-w-2xl py-10 text-center">
+        <PartyPopper size={32} className="mx-auto text-primary" />
+        <h2 className="mt-3 text-2xl font-extrabold text-text">Nice work!</h2>
+        <p className="mt-1 text-sm text-text-secondary">
+          {summary.durationMin} min &middot; {summary.totalSets} sets &middot; {summary.volumeKg}kg lifted
+        </p>
+        <div className="mt-6">
+          <WorkoutShareCard {...summary} />
+        </div>
+        <Button onClick={() => navigate('/dashboard')} size="lg" variant="secondary" className="mt-6 w-full sm:w-auto">
+          Done
         </Button>
       </Container>
     )
