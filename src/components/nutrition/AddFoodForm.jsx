@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Search, Plus } from 'lucide-react'
+import { Search, Plus, ScanLine } from 'lucide-react'
 import Card from '../ui/Card'
 import Input from '../ui/Input'
 import Button from '../ui/Button'
 import Chip from '../ui/Chip'
+import BarcodeScanner from './BarcodeScanner'
 import { searchFoods, logMeal } from '../../services/nutritionService'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -23,6 +24,7 @@ export default function AddFoodForm({ onAdded }) {
   const [mealType, setMealType] = useState('breakfast')
   const [customName, setCustomName] = useState('')
   const [saving, setSaving] = useState(false)
+  const [scanning, setScanning] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -34,25 +36,27 @@ export default function AddFoodForm({ onAdded }) {
 
   const handleAdd = async () => {
     setSaving(true)
-    const payload = selected
-      ? {
-          foodId: selected.id,
-          mealType,
-          quantity,
-          calories: selected.calories * quantity,
-          protein_g: selected.protein_g * quantity,
-          carbs_g: selected.carbs_g * quantity,
-          fat_g: selected.fat_g * quantity,
-        }
-      : {
-          customFoodName: customName,
-          mealType,
-          quantity: 1,
-          calories: 0,
-          protein_g: 0,
-          carbs_g: 0,
-          fat_g: 0,
-        }
+    const payload =
+      selected.id || selected.scanned
+        ? {
+            foodId: selected.id ?? null,
+            customFoodName: selected.id ? null : selected.name,
+            mealType,
+            quantity,
+            calories: selected.calories * quantity,
+            protein_g: selected.protein_g * quantity,
+            carbs_g: selected.carbs_g * quantity,
+            fat_g: selected.fat_g * quantity,
+          }
+        : {
+            customFoodName: customName,
+            mealType,
+            quantity: 1,
+            calories: 0,
+            protein_g: 0,
+            carbs_g: 0,
+            fat_g: 0,
+          }
     const { error } = await logMeal(user.id, payload)
     setSaving(false)
     if (!error) {
@@ -70,14 +74,19 @@ export default function AddFoodForm({ onAdded }) {
 
       {!selected ? (
         <>
-          <div className="relative">
-            <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
-            <Input
-              placeholder="Search e.g. roti, dal, paneer…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary" />
+              <Input
+                placeholder="Search e.g. roti, dal, paneer…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setScanning(true)} className="!px-3">
+              <ScanLine size={16} />
+            </Button>
           </div>
           {results.length > 0 && (
             <div className="mt-2 flex flex-col gap-1.5">
@@ -109,10 +118,17 @@ export default function AddFoodForm({ onAdded }) {
         </>
       ) : (
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-medium text-text">{selected.custom ? (customName || selected.name) : selected.name}</p>
+          <div>
+            <p className="text-sm font-medium text-text">{selected.custom ? (customName || selected.name) : selected.name}</p>
+            {selected.scanned && (
+              <p className="text-xs text-text-secondary">
+                Scanned &middot; {selected.calories} kcal per {selected.serving_size}
+              </p>
+            )}
+          </div>
           {!selected.custom && (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-text-secondary">Servings:</span>
+              <span className="text-xs text-text-secondary">{selected.scanned ? `x ${selected.serving_size}:` : 'Servings:'}</span>
               <Input
                 type="number"
                 min="0.5"
@@ -139,6 +155,16 @@ export default function AddFoodForm({ onAdded }) {
             </Button>
           </div>
         </div>
+      )}
+
+      {scanning && (
+        <BarcodeScanner
+          onClose={() => setScanning(false)}
+          onFound={(product) => {
+            setScanning(false)
+            setSelected({ scanned: true, ...product })
+          }}
+        />
       )}
     </Card>
   )
