@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Trash2, Play, Copy } from 'lucide-react'
+import { ArrowLeft, Trash2, Play, Copy, ChevronDown } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Poster from '../components/ui/Poster'
+import ExerciseProgressChart from '../components/workouts/ExerciseProgressChart'
 import { useAuth } from '../hooks/useAuth'
 import { getWorkoutWithExercises, startSession, deleteRoutine, duplicateRoutine } from '../services/workoutService'
 import { getWorkoutPosterUrl } from '../data/workoutPosters'
@@ -18,6 +19,7 @@ export default function WorkoutDetail() {
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [duplicating, setDuplicating] = useState(false)
+  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
     getWorkoutWithExercises(id).then((data) => {
@@ -110,19 +112,37 @@ export default function WorkoutDetail() {
       </Button>
 
       <div className="mt-6 flex flex-col gap-2.5">
-        {workout.workout_exercises.map((we, i) => (
-          <Card key={we.id} className="flex items-center gap-3 p-4">
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-bold text-text-secondary">
-              {i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-text">{we.exercises.name}</p>
-              <p className="text-xs text-text-secondary">
-                {we.target_sets} sets &times; {we.target_reps} &middot; rest {we.rest_seconds}s
-              </p>
-            </div>
-          </Card>
-        ))}
+        {workout.workout_exercises.map((we, i) => {
+          const isOpen = expandedId === we.id
+          return (
+            <Card key={we.id} className="p-4">
+              <button
+                type="button"
+                onClick={() => setExpandedId(isOpen ? null : we.id)}
+                className="flex w-full items-center gap-3 text-left"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-bold text-text-secondary">
+                  {i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-text">{we.exercises.name}</p>
+                  <p className="text-xs text-text-secondary">
+                    {we.target_sets} sets &times; {we.target_reps} &middot; rest {we.rest_seconds}s
+                  </p>
+                </div>
+                <ChevronDown
+                  size={16}
+                  className={`shrink-0 text-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {isOpen && (
+                <div className="mt-3 border-t border-border pt-3">
+                  <ExerciseProgressChart exerciseId={we.exercise_id} />
+                </div>
+              )}
+            </Card>
+          )
+        })}
       </div>
     </Container>
   )

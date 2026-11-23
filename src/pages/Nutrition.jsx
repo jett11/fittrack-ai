@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Flame, Beef, Wheat } from 'lucide-react'
 import Container from '../components/ui/Container'
-import Card from '../components/ui/Card'
 import Tabs from '../components/ui/Tabs'
 import AddFoodForm from '../components/nutrition/AddFoodForm'
 import MealSection from '../components/nutrition/MealSection'
@@ -9,6 +9,7 @@ import MacroDonut from '../components/nutrition/MacroDonut'
 import MealDistribution from '../components/nutrition/MealDistribution'
 import CalorieRing from '../components/dashboard/CalorieRing'
 import WeeklyCalorieChart from '../components/dashboard/WeeklyCalorieChart'
+import StatCard from '../components/dashboard/StatCard'
 import PremiumGate from '../components/ui/PremiumGate'
 import { useAuth } from '../hooks/useAuth'
 import { getTodayMeals, deleteMealLog } from '../services/nutritionService'
@@ -20,24 +21,6 @@ const TABS = [
   { value: 'log', label: "Today's Log" },
   { value: 'budget', label: 'Budget Planner' },
 ]
-
-function SummaryBar({ label, value, target, unit }) {
-  const pct = target ? Math.min(100, Math.round((value / target) * 100)) : 0
-  return (
-    <div>
-      <div className="mb-1 flex justify-between text-xs">
-        <span className="text-text-secondary">{label}</span>
-        <span className="font-medium text-text">
-          {Math.round(value)}
-          {unit} {target ? `/ ${Math.round(target)}${unit}` : ''}
-        </span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-surface-2">
-        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  )
-}
 
 export default function Nutrition() {
   const { user, profile } = useAuth()
@@ -99,9 +82,21 @@ export default function Nutrition() {
 
           <CalorieRing consumed={totals.calories} target={calorieTarget} />
 
-          <Card className="p-5">
-            <SummaryBar label="Protein" value={totals.protein_g} target={proteinTarget} unit="g" />
-          </Card>
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard
+              icon={Flame}
+              tone="calories"
+              value={Math.round(totals.calories)}
+              label={calorieTarget ? `/ ${Math.round(calorieTarget)} kcal` : 'Calories'}
+            />
+            <StatCard
+              icon={Beef}
+              tone="protein"
+              value={`${Math.round(totals.protein_g)}g`}
+              label={proteinTarget ? `/ ${Math.round(proteinTarget)}g protein` : 'Protein'}
+            />
+            <StatCard icon={Wheat} tone="carbs" value={`${Math.round(totals.carbs_g)}g`} label="Carbs" />
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <MacroDonut protein_g={totals.protein_g} carbs_g={totals.carbs_g} fat_g={totals.fat_g} />

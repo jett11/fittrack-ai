@@ -198,6 +198,20 @@ export async function getLastSetsForExercises(exerciseIds, excludeSessionId) {
   return byExercise
 }
 
+/** Logged weight over time for one exercise, from the user's own sets. */
+export async function getExerciseProgressHistory(exerciseId) {
+  if (isDemoMode) return []
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('weight_kg, reps_completed, created_at')
+    .eq('exercise_id', exerciseId)
+    .eq('completed', true)
+    .not('weight_kg', 'is', null)
+    .order('created_at', { ascending: true })
+  if (error) return []
+  return data
+}
+
 export async function getWorkoutHistory(userId, limitCount = 20) {
   if (isDemoMode) return []
   const { data, error } = await supabase

@@ -5,6 +5,8 @@ const TONES = {
   calories: { bg: 'rgb(249 115 22 / 16%)', fg: '#f97316' },
   water: { bg: 'rgb(56 189 248 / 16%)', fg: '#38bdf8' },
   scale: { bg: 'rgb(168 85 247 / 16%)', fg: '#a855f7' },
+  protein: { bg: 'rgb(56 189 248 / 16%)', fg: '#38bdf8' },
+  carbs: { bg: 'var(--success-soft)', fg: 'var(--accent)' },
 }
 
 export default function StatCard({ icon: Icon, label, value, sub, tone = 'primary' }) {
