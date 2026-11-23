@@ -1,4 +1,4 @@
-import { Flame, Droplets, Scale, Dumbbell, Utensils, TrendingUp, Bell, Power } from 'lucide-react'
+import { Flame, Droplets, Scale, Dumbbell, Utensils, TrendingUp, Bell } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Container from '../components/ui/Container'
 import Button from '../components/ui/Button'
@@ -79,13 +79,6 @@ export default function Dashboard() {
           >
             <Bell size={17} />
             <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-danger" />
-          </Link>
-          <Link
-            to="/settings"
-            aria-label="Settings"
-            className="grid h-10 w-10 place-items-center rounded-full bg-surface-2 text-text-secondary transition-colors hover:text-text"
-          >
-            <Power size={17} />
           </Link>
         </div>
       </div>
