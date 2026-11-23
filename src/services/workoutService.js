@@ -62,6 +62,27 @@ export async function createRoutine(userId, { name, goal, level, location, exerc
   return { data: workout }
 }
 
+export async function duplicateRoutine(userId, workoutId) {
+  if (isDemoMode) return { error: DEMO_ERROR }
+  const original = await getWorkoutWithExercises(workoutId)
+  if (!original) return { error: { message: 'Routine not found.' } }
+
+  const items = original.workout_exercises.map((we) => ({
+    id: we.exercise_id,
+    sets: we.target_sets,
+    reps: we.target_reps,
+    rest_seconds: we.rest_seconds,
+  }))
+
+  return createRoutine(userId, {
+    name: `${original.name} (copy)`,
+    goal: original.goal,
+    level: original.level,
+    location: original.location,
+    items,
+  })
+}
+
 export async function deleteRoutine(workoutId) {
   if (isDemoMode) return { error: DEMO_ERROR }
   const { error } = await supabase.from('workouts').delete().eq('id', workoutId)
@@ -152,6 +173,29 @@ export async function abandonSession(sessionId) {
   if (isDemoMode) return { error: DEMO_ERROR }
   const { error } = await supabase.from('workout_sessions').update({ status: 'abandoned' }).eq('id', sessionId)
   return { error }
+}
+
+/**
+ * Most recent completed set per exercise, from the user's own past sessions
+ * (RLS already scopes workout_logs to sessions the user owns). Used to power
+ * progressive-overload suggestions during an active workout.
+ */
+export async function getLastSetsForExercises(exerciseIds, excludeSessionId) {
+  if (isDemoMode || !exerciseIds?.length) return {}
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('session_id, exercise_id, weight_kg, reps_completed, created_at')
+    .in('exercise_id', exerciseIds)
+    .eq('completed', true)
+    .neq('session_id', excludeSessionId)
+    .order('created_at', { ascending: false })
+  if (error) return {}
+
+  const byExercise = {}
+  data.forEach((log) => {
+    if (!byExercise[log.exercise_id]) byExercise[log.exercise_id] = log
+  })
+  return byExercise
 }
 
 export async function getWorkoutHistory(userId, limitCount = 20) {

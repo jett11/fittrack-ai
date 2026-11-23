@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Trash2, Play } from 'lucide-react'
+import { ArrowLeft, Trash2, Play, Copy } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import Poster from '../components/ui/Poster'
 import { useAuth } from '../hooks/useAuth'
-import { getWorkoutWithExercises, startSession, deleteRoutine } from '../services/workoutService'
+import { getWorkoutWithExercises, startSession, deleteRoutine, duplicateRoutine } from '../services/workoutService'
 import { getWorkoutPosterUrl } from '../data/workoutPosters'
 
 export default function WorkoutDetail() {
   const { id } = useParams()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const navigate = useNavigate()
+  const isPremium = !!profile?.is_premium
   const [workout, setWorkout] = useState(null)
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
+  const [duplicating, setDuplicating] = useState(false)
 
   useEffect(() => {
     getWorkoutWithExercises(id).then((data) => {
@@ -35,6 +37,13 @@ export default function WorkoutDetail() {
     if (!confirm('Delete this routine? This cannot be undone.')) return
     await deleteRoutine(id)
     navigate('/workouts')
+  }
+
+  const handleDuplicate = async () => {
+    setDuplicating(true)
+    const { data, error } = await duplicateRoutine(user.id, id)
+    setDuplicating(false)
+    if (!error) navigate(`/workouts/${data.id}`)
   }
 
   if (loading) {
@@ -65,7 +74,17 @@ export default function WorkoutDetail() {
       <Card className="overflow-hidden p-0">
         <Poster src={getWorkoutPosterUrl(workout)} aspect="4/3">
           <div className="flex h-full flex-col justify-between p-4">
-            <div className="flex items-start justify-end">
+            <div className="flex items-start justify-end gap-2">
+              {isPremium && (
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  disabled={duplicating}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black/50 disabled:opacity-60"
+                >
+                  <Copy size={13} /> {duplicating ? 'Copying…' : 'Duplicate'}
+                </button>
+              )}
               {!workout.is_template && (
                 <button
                   type="button"

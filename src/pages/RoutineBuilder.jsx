@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Sparkles } from 'lucide-react'
+import { ArrowLeft, Sparkles, ChevronUp, ChevronDown, X } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
@@ -44,6 +44,16 @@ export default function RoutineBuilder() {
 
   const togglePick = (ex) => {
     setPicked((p) => (p.find((e) => e.id === ex.id) ? p.filter((e) => e.id !== ex.id) : [...p, ex]))
+  }
+
+  const moveExercise = (index, dir) => {
+    setPicked((p) => {
+      const target = index + dir
+      if (target < 0 || target >= p.length) return p
+      const next = [...p]
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
   }
 
   const handleGenerateAI = async () => {
@@ -160,6 +170,45 @@ export default function RoutineBuilder() {
       <p className="mt-6 mb-3 text-sm font-semibold text-text">
         Pick exercises <span className="font-normal text-text-secondary">({picked.length} selected)</span>
       </p>
+
+      {picked.length > 0 && (
+        <div className="mb-4 flex flex-col gap-2">
+          {picked.map((ex, i) => (
+            <Card key={ex.id} className="flex items-center gap-3 p-3">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 text-xs font-bold text-text-secondary">
+                {i + 1}
+              </span>
+              <p className="min-w-0 flex-1 truncate text-sm font-medium text-text">{ex.name}</p>
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  disabled={i === 0}
+                  onClick={() => moveExercise(i, -1)}
+                  className="grid h-7 w-7 place-items-center rounded-full text-text-secondary transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-30"
+                >
+                  <ChevronUp size={15} />
+                </button>
+                <button
+                  type="button"
+                  disabled={i === picked.length - 1}
+                  onClick={() => moveExercise(i, 1)}
+                  className="grid h-7 w-7 place-items-center rounded-full text-text-secondary transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-30"
+                >
+                  <ChevronDown size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => togglePick(ex)}
+                  className="grid h-7 w-7 place-items-center rounded-full text-text-secondary transition-colors hover:bg-surface-2 hover:text-danger"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
       <ExerciseLibrary onPick={togglePick} pickedIds={picked.map((e) => e.id)} />
 
       {error && <p className="mt-4 text-sm font-medium text-danger">{error}</p>}

@@ -1,19 +1,28 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Circle, Flag } from 'lucide-react'
+import { CheckCircle2, Circle, Flag, TrendingUp } from 'lucide-react'
 import Container from '../components/ui/Container'
 import Card from '../components/ui/Card'
 import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 import RestTimer from '../components/workouts/RestTimer'
 import { useAuth } from '../hooks/useAuth'
-import { getActiveSession, getSessionLogs, logSet, completeSession, abandonSession } from '../services/workoutService'
+import {
+  getActiveSession,
+  getSessionLogs,
+  logSet,
+  completeSession,
+  abandonSession,
+  getLastSetsForExercises,
+} from '../services/workoutService'
+import { suggestProgression } from '../utils/progressiveOverload'
 
 export default function WorkoutSession() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [session, setSession] = useState(null)
   const [logs, setLogs] = useState({})
+  const [lastSets, setLastSets] = useState({})
   const [loading, setLoading] = useState(true)
   const [resting, setResting] = useState(null)
   const [finishing, setFinishing] = useState(false)
@@ -32,6 +41,9 @@ export default function WorkoutSession() {
       setSession(s)
       setLogs(map)
       setLoading(false)
+
+      const exerciseIds = (s.workouts?.workout_exercises ?? []).map((we) => we.exercise_id)
+      getLastSetsForExercises(exerciseIds, s.id).then(setLastSets)
     })
   }, [user.id])
 
@@ -103,13 +115,20 @@ export default function WorkoutSession() {
       </div>
 
       <div className="flex flex-col gap-4">
-        {exercises.map((we) => (
+        {exercises.map((we) => {
+          const suggestion = suggestProgression(lastSets[we.exercise_id])
+          return (
           <Card key={we.id} className="p-5">
             <p className="font-bold text-text">{we.exercises.name}</p>
-            <p className="mb-3 text-xs text-text-secondary">
+            <p className="text-xs text-text-secondary">
               Target: {we.target_sets} sets &times; {we.target_reps}
             </p>
-            <div className="flex flex-col gap-2">
+            {suggestion && (
+              <p className="mt-1.5 mb-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                <TrendingUp size={13} /> {suggestion}
+              </p>
+            )}
+            <div className="mt-3 flex flex-col gap-2">
               {Array.from({ length: we.target_sets }).map((_, i) => {
                 const setNumber = i + 1
                 const key = `${we.exercise_id}-${setNumber}`
@@ -125,7 +144,8 @@ export default function WorkoutSession() {
               })}
             </div>
           </Card>
-        ))}
+          )
+        })}
       </div>
 
       <Button onClick={handleFinish} disabled={finishing} size="lg" className="mt-6 w-full">
