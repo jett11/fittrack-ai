@@ -1,4 +1,5 @@
 import { Pressable, Text, ActivityIndicator, type PressableProps } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { colors } from '../constants/theme'
 
 type Props = PressableProps & {
@@ -7,15 +8,21 @@ type Props = PressableProps & {
   loading?: boolean
 }
 
-export function Button({ children, variant = 'primary', loading, disabled, style, ...props }: Props) {
+export function Button({ children, variant = 'primary', loading, disabled, style, onPress, ...props }: Props) {
   const isDisabled = disabled || loading
 
   const bg = variant === 'primary' ? colors.lime : variant === 'secondary' ? colors.card : 'transparent'
   const textColor = variant === 'primary' ? colors.bg : colors.text
 
+  const handlePress = (e: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    onPress?.(e)
+  }
+
   return (
     <Pressable
       disabled={isDisabled}
+      onPress={handlePress}
       style={(state) => [
         {
           backgroundColor: bg,

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from 'react-native'
+import { View, Text, ScrollView, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Play } from 'lucide-react-native'
 import { useAuth } from '../../hooks/useAuth'
 import { Poster } from '../../components/Poster'
+import { Skeleton } from '../../components/Skeleton'
+import { FadeIn } from '../../components/FadeIn'
 import { colors } from '../../constants/theme'
 import { getTemplates, getMyRoutines } from '../../services/workoutService'
 import { getWorkoutPosterUrl } from '../../data/workoutPosters'
@@ -15,36 +17,38 @@ const LABELS: Record<string, string> = {
   general_fitness: 'General fitness',
 }
 
-function WorkoutPosterCard({ workout }: { workout: any }) {
+function WorkoutPosterCard({ workout, index }: { workout: any; index: number }) {
   return (
-    <Pressable onPress={() => router.push(`/workout/${workout.id}`)} style={{ width: '48%', marginBottom: 14 }}>
-      <Poster uri={getWorkoutPosterUrl(workout)} aspectRatio={4 / 5}>
-        <View style={{ flex: 1, justifyContent: 'space-between', padding: 12 }}>
-          <View style={{ alignSelf: 'flex-end' }}>
-            <View
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: colors.lime,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Play color={colors.bg} size={14} fill={colors.bg} />
+    <FadeIn delay={Math.min(index, 8) * 50} style={{ width: '48%', marginBottom: 14 }}>
+      <Pressable onPress={() => router.push(`/workout/${workout.id}`)}>
+        <Poster uri={getWorkoutPosterUrl(workout)} aspectRatio={4 / 5}>
+          <View style={{ flex: 1, justifyContent: 'space-between', padding: 12 }}>
+            <View style={{ alignSelf: 'flex-end' }}>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: colors.lime,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Play color={colors.bg} size={14} fill={colors.bg} />
+              </View>
+            </View>
+            <View>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }} numberOfLines={2}>
+                {workout.name}
+              </Text>
+              {workout.goal && (
+                <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 2 }}>{LABELS[workout.goal] ?? workout.goal}</Text>
+              )}
             </View>
           </View>
-          <View>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }} numberOfLines={2}>
-              {workout.name}
-            </Text>
-            {workout.goal && (
-              <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 2 }}>{LABELS[workout.goal] ?? workout.goal}</Text>
-            )}
-          </View>
-        </View>
-      </Poster>
-    </Pressable>
+        </Poster>
+      </Pressable>
+    </FadeIn>
   )
 }
 
@@ -69,15 +73,19 @@ export default function Workout() {
         <Text style={{ color: colors.text, fontSize: 20, fontWeight: '800', marginBottom: 16 }}>Workouts</Text>
 
         {loading ? (
-          <ActivityIndicator color={colors.lime} style={{ marginTop: 40 }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} width="48%" height={190} style={{ marginBottom: 14 }} />
+            ))}
+          </View>
         ) : (
           <>
             {routines.length > 0 && (
               <>
                 <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '700', marginBottom: 10 }}>MY ROUTINES</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                  {routines.map((w) => (
-                    <WorkoutPosterCard key={w.id} workout={w} />
+                  {routines.map((w, i) => (
+                    <WorkoutPosterCard key={w.id} workout={w} index={i} />
                   ))}
                 </View>
               </>
@@ -90,8 +98,8 @@ export default function Workout() {
               <Text style={{ color: colors.textSecondary, fontSize: 13 }}>No templates available yet.</Text>
             ) : (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                {templates.map((w) => (
-                  <WorkoutPosterCard key={w.id} workout={w} />
+                {templates.map((w, i) => (
+                  <WorkoutPosterCard key={w.id} workout={w} index={i} />
                 ))}
               </View>
             )}

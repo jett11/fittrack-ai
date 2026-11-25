@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from 'react-native'
+import { View, Text, ScrollView, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { Flame, Droplets, Dumbbell, Bell, Play } from 'lucide-react-native'
@@ -8,6 +8,8 @@ import { useChallenges } from '../../hooks/useChallenges'
 import { Card } from '../../components/Card'
 import { Poster } from '../../components/Poster'
 import { HeroChallengeCard } from '../../components/HeroChallengeCard'
+import { Skeleton } from '../../components/Skeleton'
+import { FadeIn } from '../../components/FadeIn'
 import { colors } from '../../constants/theme'
 import { getTodayWater, getTodayMealTotals, getTodayWorkoutSession } from '../../services/dashboardService'
 import { getTemplates, getMyRoutines } from '../../services/workoutService'
@@ -83,48 +85,63 @@ export default function Home() {
         </View>
 
         {loading ? (
-          <ActivityIndicator color={colors.lime} style={{ marginTop: 40 }} />
+          <View style={{ gap: 16 }}>
+            <Skeleton height={110} borderRadius={20} />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Skeleton height={90} />
+              <Skeleton height={90} />
+            </View>
+            <Skeleton height={64} />
+          </View>
         ) : (
           <>
-            {challenges.length > 0 && <HeroChallengeCard challenges={challenges} completions={completions} onToggle={toggle} />}
+            {challenges.length > 0 && (
+              <FadeIn>
+                <HeroChallengeCard challenges={challenges} completions={completions} onToggle={toggle} />
+              </FadeIn>
+            )}
 
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <StatTile
-                icon={Flame}
-                tint="#f97316"
-                value={calorieTarget ? Math.round(meals.calories) : '—'}
-                label={calorieTarget ? `/ ${calorieTarget} kcal` : 'Calories'}
-              />
-              <StatTile icon={Droplets} tint="#38bdf8" value={`${water}/8`} label="Glasses of water" />
-            </View>
-
-            <Card>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 14,
-                    backgroundColor: `${colors.lime}26`,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Dumbbell color={colors.lime} size={18} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>
-                    {todayWorkout ? todayWorkout.workouts?.name ?? 'Workout' : 'No workout yet today'}
-                  </Text>
-                  <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
-                    {todayWorkout ? (todayWorkout.status === 'completed' ? 'Completed' : 'In progress') : 'Head to the Workout tab to start one'}
-                  </Text>
-                </View>
+            <FadeIn delay={60}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <StatTile
+                  icon={Flame}
+                  tint="#f97316"
+                  value={calorieTarget ? Math.round(meals.calories) : '—'}
+                  label={calorieTarget ? `/ ${calorieTarget} kcal` : 'Calories'}
+                />
+                <StatTile icon={Droplets} tint="#38bdf8" value={`${water}/8`} label="Glasses of water" />
               </View>
-            </Card>
+            </FadeIn>
+
+            <FadeIn delay={120}>
+              <Card>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 14,
+                      backgroundColor: `${colors.lime}26`,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Dumbbell color={colors.lime} size={18} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colors.text, fontWeight: '700', fontSize: 14 }}>
+                      {todayWorkout ? todayWorkout.workouts?.name ?? 'Workout' : 'No workout yet today'}
+                    </Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                      {todayWorkout ? (todayWorkout.status === 'completed' ? 'Completed' : 'In progress') : 'Head to the Workout tab to start one'}
+                    </Text>
+                  </View>
+                </View>
+              </Card>
+            </FadeIn>
 
             {recentWorkouts.length > 0 && (
-              <View>
+              <FadeIn delay={180}>
                 <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '700', marginBottom: 10 }}>RECENT WORKOUTS</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                   {recentWorkouts.map((w) => (
@@ -152,7 +169,7 @@ export default function Home() {
                     </Pressable>
                   ))}
                 </ScrollView>
-              </View>
+              </FadeIn>
             )}
           </>
         )}
