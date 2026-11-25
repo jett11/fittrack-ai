@@ -46,6 +46,10 @@ export default function Login() {
           </Button>
         </View>
 
+        <Link href="/(auth)/forgot-password" style={{ marginTop: 16, textAlign: 'center', color: colors.textSecondary }}>
+          Forgot password?
+        </Link>
+
         <Link href="/(auth)/signup" style={{ marginTop: 20, textAlign: 'center', color: colors.textSecondary }}>
           Don&rsquo;t have an account? <Text style={{ color: colors.lime, fontWeight: '700' }}>Sign up</Text>
         </Link>

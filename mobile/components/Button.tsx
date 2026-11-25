@@ -7,7 +7,7 @@ type Props = PressableProps & {
   loading?: boolean
 }
 
-export function Button({ children, variant = 'primary', loading, disabled, ...props }: Props) {
+export function Button({ children, variant = 'primary', loading, disabled, style, ...props }: Props) {
   const isDisabled = disabled || loading
 
   const bg = variant === 'primary' ? colors.lime : variant === 'secondary' ? colors.card : 'transparent'
@@ -16,17 +16,20 @@ export function Button({ children, variant = 'primary', loading, disabled, ...pr
   return (
     <Pressable
       disabled={isDisabled}
-      style={({ pressed }) => ({
-        backgroundColor: bg,
-        opacity: isDisabled ? 0.5 : pressed ? 0.85 : 1,
-        borderRadius: 999,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: variant === 'secondary' ? 1 : 0,
-        borderColor: colors.border,
-      })}
+      style={(state) => [
+        {
+          backgroundColor: bg,
+          opacity: isDisabled ? 0.5 : state.pressed ? 0.85 : 1,
+          borderRadius: 999,
+          paddingVertical: 14,
+          paddingHorizontal: 20,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: variant === 'secondary' ? 1 : 0,
+          borderColor: colors.border,
+        },
+        typeof style === 'function' ? style(state) : style,
+      ]}
       {...props}
     >
       {loading ? (

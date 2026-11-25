@@ -22,6 +22,8 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Protected guard={!!user}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="workout/[id]" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="workout/session" options={{ headerShown: false, animation: 'slide_from_bottom', gestureEnabled: false }} />
       </Stack.Protected>
       <Stack.Protected guard={!user}>
         <Stack.Screen name="(auth)" />

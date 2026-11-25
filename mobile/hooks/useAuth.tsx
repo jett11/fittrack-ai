@@ -11,6 +11,7 @@ type AuthContextValue = {
   signUp: (email: string, password: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<{ error: any }>
   saveProfile: (updates: Record<string, any>) => Promise<{ error: any }>
   refreshProfile: () => Promise<void>
 }
@@ -60,6 +61,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
   }
 
+  // Reuses the website's already-working reset-password page rather than
+  // building a second one here — the mobile app has no web view/browser
+  // chrome to host a "set new password" form, and Supabase's recovery link
+  // needs somewhere to land either way.
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://fittrack-ai-1ip.pages.dev/reset-password',
+    })
+    return { error }
+  }
+
   const saveProfile = async (updates: Record<string, any>) => {
     if (!user) return { error: { message: 'Not signed in.' } }
     const { data, error } = await supabase.from('profiles').update(updates).eq('id', user.id).select().single()
@@ -72,7 +84,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signUp, signIn, signOut, saveProfile, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ user, profile, loading, signUp, signIn, signOut, resetPassword, saveProfile, refreshProfile }}
+    >
       {children}
     </AuthContext.Provider>
   )
