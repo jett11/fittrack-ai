@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from 'react'
 import { View, Text, ScrollView, ActivityIndicator, Pressable, Image as RNImage, Alert } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
-import { CartesianChart, Line } from 'victory-native'
 import { Camera } from 'lucide-react-native'
 import { useAuth } from '../../hooks/useAuth'
 import { Card } from '../../components/Card'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { SimpleLineChart } from '../../components/SimpleLineChart'
 import { colors } from '../../constants/theme'
 import {
   getMeasurementHistory,
@@ -106,11 +106,7 @@ export default function Progress() {
           {chartData.length < 2 ? (
             <Text style={{ color: colors.textSecondary, fontSize: 13 }}>Log your weight at least twice to see a trend.</Text>
           ) : (
-            <View style={{ height: 160 }}>
-              <CartesianChart data={chartData} xKey="x" yKeys={['y']}>
-                {({ points }) => <Line points={points.y} color={colors.lime} strokeWidth={3} curveType="natural" />}
-              </CartesianChart>
-            </View>
+            <SimpleLineChart data={chartData.map((d) => d.y)} />
           )}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
             <View style={{ flex: 1 }}>
