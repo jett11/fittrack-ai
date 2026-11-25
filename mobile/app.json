@@ -43,6 +43,12 @@
           "icon": "./assets/icon.png",
           "color": "#C6FF00"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FitTrack AI uses your photo library to attach private progress photos."
+        }
       ]
     ]
   }
